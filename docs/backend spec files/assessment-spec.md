@@ -1,6 +1,6 @@
 ADMIN_ASSESSMENT_DATA_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-assessment
+scope (范围) = index.html#assessment
 source_page (参考页面) = index.html
 static_node_count (固定操作节点数) = 12
 dynamic_class_row_count (动态班级行数) = 0:k
@@ -25,7 +25,7 @@ assessment_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = assessment.read; assessment.export for export actions
@@ -45,7 +45,7 @@ production_initial_db_assessment_item = EMPTY
 dynamic_list_without_data = []
 dynamic_count_without_data = 0
 unassigned_or_unstarted_status = not_started
-roster_without_assessment = real class/child rows may appear with done_count=0, completion_rate=0, domain_average=NULL, status=not_started
+roster_without_assessment = real class/child rows may appear with completed_count=0, completion_rate=0, domain_average=NULL, status=not_started
 hardcoded_business_id = FORBIDDEN
 environment_isolation = demo|test 数据不得复制到 production
 
@@ -59,7 +59,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_assessment_home | current filters | file download |
@@ -106,8 +106,8 @@ object_type = aggregate
 db_class|db_teacher|db_teacher_class|db_child = REUSE canonical roster and assignment objects
 db_assessment|db_assessment_item = REUSE Teacher App assessment records; no admin assessment table
 total_count = COUNT(db_child WHERE class_id=row.class_id AND enrollment_status=active)
-done_count = COUNT(DISTINCT db_assessment.child_id WHERE class_id=row.class_id AND assessment_period=selected_period AND assessment_status=complete)
-completion_rate = IF total_count=0 THEN 0 ELSE done_count/total_count*100
+completed_count = COUNT(DISTINCT db_assessment.child_id WHERE class_id=row.class_id AND assessment_period=selected_period AND assessment_status=complete)
+completion_rate = IF total_count=0 THEN 0 ELSE completed_count/total_count*100
 domain_average = AVG(db_assessment_item.score GROUP BY assessment_domain) only for submitted/complete assessments; no scores -> NULL
 school_average = weighted aggregation of real child assessment items, not average of Mock class percentages
 
@@ -128,8 +128,8 @@ extension_rule = extend the same canonical objects; app-prefixed assessment-reco
 [EMPTY_STATE]
 
 IF no real classes, return [] AND empty_title=暂无班级数据
-IF class exists but no active child, total_count=0, done_count=0, completion_rate=0, status=not_started
-IF active roster exists but no assessment, keep real class row with done_count=0, completion_rate=0, domain_average=NULL, status=not_started
+IF class exists but no active child, total_count=0, completed_count=0, completion_rate=0, status=not_started
+IF active roster exists but no assessment, keep real class row with completed_count=0, completion_rate=0, domain_average=NULL, status=not_started
 IF selected class has no scores, radar_series=[] AND show radar_empty_title=暂无测评分数
 
 

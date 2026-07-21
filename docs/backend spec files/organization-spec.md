@@ -1,6 +1,6 @@
 ADMIN_ORGANIZATION_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-org
+scope (范围) = index.html#org
 source_page (参考页面) = index.html
 static_node_count (固定按钮节点数) = 16
 dynamic_teacher_action_count (教师行动态操作数) = 0:2t
@@ -18,7 +18,7 @@ list_rule (列表规则) = 0:k | 1:k
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; review-spec.md; Teacher App home-spec.md|home-school-spec.md
 shared_objects = db_admin, db_admin_school, db_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_upload, db_growth_record, db_assessment
-reserved_identity_objects_defined_here = db_parent, db_parent_child
+reserved_identity_objects_reused = db_parent, db_parent_child (canonical = Parent App home-spec.md; 管理端仅 REUSE，不得重复定义)
 admin_page_aggregate = db_admin_org_home
 identity_alias = FORBIDDEN
 
@@ -26,7 +26,7 @@ identity_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = org.read|org.teacher.write|org.class.write|org.child.write|org.account.reset according to action
@@ -61,7 +61,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_org_home | current tab/filter | file download |
@@ -135,31 +135,19 @@ object_type = aggregate
 
 [CONTENT_OBJECTS]
 
-家长 (Parent / db_parent)
+家长 (Parent / db_parent) [REUSE]
 
-parent_id (家长ID), 1:1, integer, ui=context.hidden
-school_id (园所ID), 1:1, integer, ui=context.hidden
-parent_name (家长姓名), 1:1, max_len=50, ui=admin_org.child.parent_name
-phone (联系电话), 1:1, phone, ui=admin_org.child.parent_phone
-parent_status (家长账号状态), 1:1, s1=active(启用)|s2=inactive(停用)|s3=suspended(暂停), ui=context.hidden
-
-rel_count (关系数量) = 1
-rel_db (关联表) = db_school
-rel_map (关系字段) = db_parent{school_id}<->db_school{school_id}
+reuse_source (复用来源) = Parent App home-spec.md (canonical definition)
+引用字段 = parent_id, parent_name (ui=admin_org.child.parent_name), phone (ui=admin_org.child.parent_phone), parent_status
+parent_status (家长账号状态) = s1=active(启用)|s2=suspended(暂停)|s3=closed(注销)
+school_scope_rule (园所归属规则) = db_parent 不存 school_id；管理端园所过滤经 db_parent_child->db_child.school_id 派生
 
 
-家长幼儿关系 (Parent-Child Authorization / db_parent_child)
+家长幼儿关系 (Parent-Child Relation / db_parent_child) [REUSE]
 
-parent_child_id (关系ID), 1:1, integer, ui=context.hidden
-parent_id (家长ID), 1:1, integer, ui=context.hidden
-child_id (幼儿ID), 1:1, integer, ui=context.hidden
-relationship_type (关系类型), 1:1, r1=mother(母亲)|r2=father(父亲)|r3=grandparent(祖辈)|r4=guardian(其他监护人), ui=admin_org.child.relationship
-primary_contact (是否主要联系人), 1:1, boolean, ui=admin_org.child.primary_contact
-active (是否有效), 1:1, boolean, ui=context.hidden
-
-rel_count (关系数量) = 2
-rel_db (关联表) = db_parent, db_child
-rel_map (关系字段) = db_parent_child{parent_id}<->db_parent{parent_id}; db_parent_child{child_id}<->db_child{child_id}
+reuse_source (复用来源) = Parent App home-spec.md (canonical definition)
+引用字段 = parent_child_id, parent_id, child_id, relationship_type (ui=admin_org.child.relationship), is_primary_contact (ui=admin_org.child.primary_contact), is_active
+relationship_type (监护关系) = r1=mother(母亲)|r2=father(父亲)|r3=grandparent(祖辈)|r4=guardian(监护人)|r5=other(其他)
 unique = parent_id + child_id
 
 
@@ -177,7 +165,7 @@ password_reset = external identity-provider command, not a new business table an
 
 db_teacher ADD phone(0:1, phone)
 db_class ADD planned_child_count(0:1, nonnegative integer)
-db_child ADD gender(0:1, g1=male|g2=female|g3=unspecified)
+db_child.gender = REUSE canonical extension (Parent App child-profile-spec.md): g1=female(女)|g2=male(男)|g3=unspecified(未指定); 管理端不得重复 ADD 或改变编码
 extension_rule = extend the same canonical identity objects; app-prefixed teacher/class/child copies are FORBIDDEN
 
 
@@ -186,7 +174,7 @@ extension_rule = extend the same canonical identity objects; app-prefixed teache
 IF selected tab has no real records, return [] AND empty_title=暂无教师|暂无班级|暂无幼儿
 IF search has no match, return [] AND empty_title=没有匹配的记录
 IF teacher has no upload, upload_count=0
-IF class has no assessment, assessment_status=not_started and done_count=0
+IF class has no assessment, assessment_status=not_started and completed_count=0
 IF child has no growth record, growth_record_status=not_started
 
 

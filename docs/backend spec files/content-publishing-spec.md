@@ -1,6 +1,6 @@
 ADMIN_CONTENT_PUBLISHING_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-content
+scope (范围) = index.html#content
 source_page (参考页面) = index.html
 static_node_count (固定按钮节点数) = 16
 dynamic_content_row_count (动态内容行数) = 0:k
@@ -25,7 +25,7 @@ generic_content_table = FORBIDDEN; each category writes its existing canonical o
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = content.party.write|content.coord.write|content.training.write according to category
@@ -56,7 +56,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_content_home | current tab | file download |
@@ -92,7 +92,7 @@ category_rule = 卫生保健/安全管理如从列表编辑，仍写 db_coord_do
 | 正文/简介 | selected object summary/intro field | validate target-specific length |
 | 附件 | selected object.file_id -> db_file.file_id | optional in prototype; target schema may require it |
 
-production_publish_rule = current generic modal omits required fields such as activity_date, training start_at/end_at and some mandatory file/date fields; it may save a draft, but direct publish MUST return 422 until target-specific required fields are supplied
+production_publish_rule = current generic modal omits required fields such as activity_at, training start_at/end_at and some mandatory file/date fields; it may save a draft, but direct publish MUST return 422 until target-specific required fields are supplied
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -141,20 +141,20 @@ db_content_metric = REUSE library-spec.md; absent metric returns 0 / 0
 [CANONICAL_FIELD_EXTENSION]
 
 admin_creator_rule = business objects created in Admin App require an authenticated admin creator without inventing a service teacher
-db_party_study|db_party_activity|db_party_brand ADD createdby_admin_id(0:1, admin_id); the field is required when the record is created by Admin App
-db_coord_document ADD creator_type(c1=teacher|c2=admin), createdby_admin_id(0:1); CHANGE createdby to 0:1; exactly one creator ID required
-db_training ADD creator_type(c1=teacher|c2=admin), createdby_admin_id(0:1); CHANGE createdby to 0:1; exactly one creator ID required
+db_party_study|db_party_activity|db_party_brand ADD created_by_admin_id(0:1, admin_id); the field is required when the record is created by Admin App
+db_coord_document ADD creator_type(c1=teacher|c2=admin), created_by_admin_id(0:1); CHANGE created_by to 0:1; exactly one creator ID required
+db_training ADD creator_type(c1=teacher|c2=admin), created_by_admin_id(0:1); CHANGE created_by to 0:1; exactly one creator ID required
 db_party_study.study_status|db_party_activity.activity_status|db_party_brand.brand_status|db_coord_document.document_status ADD s5=withdrawn
 db_training.training_status ADD s0=draft and s5=withdrawn
 extension_rule = extend original canonical objects only; app-prefixed content/training copies are FORBIDDEN
 
 | canonical object after extension | rel_count | rel_db | rel_map |
 |---|---:|---|---|
-| db_party_study | 3 | db_school, db_file, db_admin | db_party_study{school_id}<->db_school{school_id}; db_party_study{file_id}<->db_file{file_id}; db_party_study{createdby_admin_id}<->db_admin{admin_id} |
-| db_party_activity | 3 | db_school, db_file, db_admin | db_party_activity{school_id}<->db_school{school_id}; db_party_activity{file_id}<->db_file{file_id}; db_party_activity{createdby_admin_id}<->db_admin{admin_id} |
-| db_party_brand | 3 | db_school, db_file, db_admin | db_party_brand{school_id}<->db_school{school_id}; db_party_brand{file_id}<->db_file{file_id}; db_party_brand{createdby_admin_id}<->db_admin{admin_id} |
-| db_coord_document | 4 | db_school, db_teacher, db_file, db_admin | db_coord_document{school_id}<->db_school{school_id}; IF creator_type=c1, db_coord_document{createdby}<->db_teacher{teacher_id}; db_coord_document{file_id}<->db_file{file_id}; IF creator_type=c2, db_coord_document{createdby_admin_id}<->db_admin{admin_id} |
-| db_training | 4 | db_school, db_teacher, db_file, db_admin | db_training{school_id}<->db_school{school_id}; IF creator_type=c1, db_training{createdby}<->db_teacher{teacher_id}; db_training{file_id}<->db_file{file_id}; IF creator_type=c2, db_training{createdby_admin_id}<->db_admin{admin_id} |
+| db_party_study | 3 | db_school, db_file, db_admin | db_party_study{school_id}<->db_school{school_id}; db_party_study{file_id}<->db_file{file_id}; db_party_study{created_by_admin_id}<->db_admin{admin_id} |
+| db_party_activity | 3 | db_school, db_file, db_admin | db_party_activity{school_id}<->db_school{school_id}; db_party_activity{file_id}<->db_file{file_id}; db_party_activity{created_by_admin_id}<->db_admin{admin_id} |
+| db_party_brand | 3 | db_school, db_file, db_admin | db_party_brand{school_id}<->db_school{school_id}; db_party_brand{file_id}<->db_file{file_id}; db_party_brand{created_by_admin_id}<->db_admin{admin_id} |
+| db_coord_document | 4 | db_school, db_teacher, db_file, db_admin | db_coord_document{school_id}<->db_school{school_id}; IF creator_type=c1, db_coord_document{created_by}<->db_teacher{teacher_id}; db_coord_document{file_id}<->db_file{file_id}; IF creator_type=c2, db_coord_document{created_by_admin_id}<->db_admin{admin_id} |
+| db_training | 4 | db_school, db_teacher, db_file, db_admin | db_training{school_id}<->db_school{school_id}; IF creator_type=c1, db_training{created_by}<->db_teacher{teacher_id}; db_training{file_id}<->db_file{file_id}; IF creator_type=c2, db_training{created_by_admin_id}<->db_admin{admin_id} |
 
 
 [EMPTY_STATE]

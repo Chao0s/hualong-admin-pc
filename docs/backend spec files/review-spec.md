@@ -1,6 +1,6 @@
 ADMIN_REVIEW_CENTER_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-review
+scope (范围) = index.html#review
 source_page (参考页面) = index.html
 static_node_count (固定操作节点数) = 14
 dynamic_review_row_count (动态审核行数) = 0:k
@@ -26,7 +26,7 @@ rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = review.resource|review.case|review.teacher_profile|review.training_feedback according to tab and target_type
@@ -59,7 +59,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_review_home | current filter | file download |
@@ -134,9 +134,9 @@ credential_type (材料类型), 1:1, c1=education_certificate|c2=capability_cert
 credential_name (材料名称), 1:1, max_len=150, ui=teacher_credential.name
 credential_level (级别), 0:1, l1=school|l2=district|l3=city|l4=province|l5=national|l6=other, ui=teacher_credential.level
 issuer (颁发机构), 0:1, max_len=150, ui=teacher_credential.issuer
-issued_at (颁发日期), 0:1, date, ui=teacher_credential.issued_at
+issued_date (颁发日期), 0:1, date, ui=teacher_credential.issued_at
 file_id (证明文件ID), 1:1, integer, ui=teacher_credential.file
-active (是否有效), 1:1, boolean, ui=context.hidden
+is_active (是否有效), 1:1, boolean, ui=context.hidden
 
 rel_count (关系数量) = 2
 rel_db (关联表) = db_teacher, db_file

@@ -1,6 +1,6 @@
 ADMIN_DASHBOARD_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-dashboard
+scope (范围) = index.html#dashboard
 source_page (参考页面) = index.html
 static_node_count (固定操作节点数) = 13
 dynamic_review_action_count (动态快捷审核节点数) = 0:6
@@ -24,7 +24,7 @@ rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id_source (管理员ID来源) = auth_session.admin_id
-allowed_school_id_source (授权园所来源) = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id_source (授权园所来源) = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_rule (当前园所规则) = current_school_id MUST IN allowed_school_id
 permission_source (权限来源) = db_admin_school.role|permission_scope
 required_permission (所需权限) = dashboard.read; dashboard.export for btn_admin_export
@@ -55,7 +55,7 @@ environment_isolation (环境隔离) = demo|test 数据不得复制到 productio
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_home | current_school_id, filter_context | file download |
@@ -121,7 +121,7 @@ admin_id (管理员ID), 1:1, integer, ui=context.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 role (管理员角色), 1:1, r1=super_admin(超级管理员)|r2=school_admin(园所管理员)|r3=department_admin(部门管理员)|r4=auditor(审核员)|r5=analyst(数据查看员), ui=topbar.admin_role
 permission_scope (权限范围), 1:k, permission_key, ui=context.hidden
-active (是否有效), 1:1, boolean, ui=context.hidden
+is_active (是否有效), 1:1, boolean, ui=context.hidden
 
 rel_count (关系数量) = 2
 rel_db (关联表) = db_admin, db_school
@@ -142,7 +142,7 @@ db_teacher_profile_change|db_training_feedback = REUSE definitions in review-spe
 IF no roster, child_count=0 AND teacher_count=0
 IF no resource/case records, trend_series=[] AND resource_count=0 AND case_domain_rows=[]
 IF no pending review records, review_rows=[] AND pending_count=0 AND show review_empty_title=审核队列已清空
-IF real classes exist but no assessment records, return class rows with status=not_started, done_count=0, percentage=0
+IF real classes exist but no assessment records, return class rows with status=not_started, completed_count=0, percentage=0
 IF no real classes, assessment_rows=[] AND show assessment_empty_title=暂无班级数据
 
 
@@ -155,14 +155,14 @@ IF no real classes, assessment_rows=[] AND show assessment_empty_title=暂无班
 | nav_admin_library | db_admin_library_home | index.html#library | 0 |
 | nav_admin_tasks | db_admin_task_home | index.html#tasks | 0 |
 | nav_admin_assessment | db_admin_assessment_home | index.html#assessment | 0 |
-| nav_admin_home_school | db_admin_home_school_home | index.html#homeschool | 0 |
+| nav_admin_home_school | db_admin_home_school_home | index.html#home-school | 0 |
 | nav_admin_org | db_admin_org_home | index.html#org | 0 |
 | nav_admin_content | db_admin_content_home | index.html#content | 0 |
 
 
 [JUMP_VALIDATION]
 
-IF view NOT_IN(dashboard,review,library,tasks,assessment,homeschool,org,content), return 400
+IF view NOT_IN(dashboard,review,library,tasks,assessment,home-school,org,content), return 400
 IF admin_id NOT_AUTHORIZED_FOR current_school_id, return 403
 IF required permission missing, return 403
 IF node_key=admin_dashboard_review_approve, REQUIRE target_type AND object_id FROM query_result; re-read pending status atomically; NOT_FOUND=404; non-pending=409

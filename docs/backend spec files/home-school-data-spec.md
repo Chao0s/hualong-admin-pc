@@ -1,6 +1,6 @@
 ADMIN_HOME_SCHOOL_DATA_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-homeschool
+scope (范围) = index.html#home-school
 source_page (参考页面) = index.html
 static_node_count (固定操作节点数) = 9
 dynamic_class_row_count (动态班级行数) = 0:k
@@ -25,7 +25,7 @@ shared_progress_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = home_school_data.read
@@ -58,7 +58,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_home_school_home | current period | file download |

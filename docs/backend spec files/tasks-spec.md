@@ -1,6 +1,6 @@
 ADMIN_TASK_MANAGEMENT_BACKEND_OBJECT_SPEC
 
-scope (范围) = index.html#view-tasks
+scope (范围) = index.html#tasks
 source_page (参考页面) = index.html
 static_node_count (固定按钮节点数) = 15
 dynamic_task_row_count (动态任务行数) = 0:k
@@ -25,7 +25,7 @@ task_alias = FORBIDDEN; admin-issued teacher work remains canonical db_task
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND active=1
+allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = task.read|task.publish|task.urge according to action
@@ -58,7 +58,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 3 | 资源与案例 | Resources and Cases | nav_admin_library | nav_admin_library | NULL | index.html#library |
 | 4 | 任务管理 | Task Management | nav_admin_tasks | nav_admin_tasks | NULL | index.html#tasks |
 | 5 | 测评数据 | Assessment Data | nav_admin_assessment | nav_admin_assessment | NULL | index.html#assessment |
-| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#homeschool |
+| 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
 | 9 | 导出数据 | Export Data | btn_admin_export | db_admin_task_home | current filter | file download |
@@ -76,7 +76,7 @@ environment_isolation = demo|test 数据不得复制到 production
 |---|---|---:|---|
 | 任务标题 | db_task.task_title | 1 | max_len=50 |
 | 指派对象 | assignment selector | 1 | all_teachers|grade_group|department; selector is query input, not stored as identity IDs |
-| 截止时间 | db_task.task_deadline | 1 | future datetime |
+| 截止时间 | db_task.due_at | 1 | future datetime |
 | 任务说明 | db_task.task_intro|task_division | 1 | split/validate per API contract; max_len follows canonical fields |
 
 
@@ -123,12 +123,12 @@ urge_method = recipients=assign rows WHERE assign_status IN(wait_accept,in_progr
 
 [CANONICAL_FIELD_EXTENSION]
 
-reason = existing db_task.createdby is teacher_id-only and cannot safely represent auth_session.admin_id
-db_task ADD school_id, creator_type(c1=teacher|c2=admin), createdby_admin_id(0:1, admin_id)
-db_task CHANGE createdby cardinality from 1:1 to 0:1 teacher_id; exactly one of createdby and createdby_admin_id is required according to creator_type
+reason = existing db_task.created_by is teacher_id-only and cannot safely represent auth_session.admin_id
+db_task ADD school_id, creator_type(c1=teacher|c2=admin), created_by_admin_id(0:1, integer, ref=db_admin.admin_id)
+db_task CHANGE created_by cardinality from 1:1 to 0:1 integer(ref=db_teacher.teacher_id); exactly one of created_by and created_by_admin_id is required according to creator_type
 db_task canonical rel_count = 5
 db_task canonical rel_db = db_task_assign, db_file, db_school, db_teacher, db_admin
-db_task canonical rel_map = db_task{task_id}<->db_task_assign{task_id}; db_task{file_id}<->db_file{file_id}; db_task{school_id}<->db_school{school_id}; IF creator_type=c1, db_task{createdby}<->db_teacher{teacher_id}; IF creator_type=c2, db_task{createdby_admin_id}<->db_admin{admin_id}
+db_task canonical rel_map = db_task{task_id}<->db_task_assign{task_id}; db_task{file_id}<->db_file{file_id}; db_task{school_id}<->db_school{school_id}; IF creator_type=c1, db_task{created_by}<->db_teacher{teacher_id}; IF creator_type=c2, db_task{created_by_admin_id}<->db_admin{admin_id}
 extension_rule = same db_task table; creating an app-prefixed task copy is FORBIDDEN
 
 
