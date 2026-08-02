@@ -2,10 +2,10 @@ ADMIN_LIBRARY_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#library
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 13
+static_node_count (固定操作节点数) = 14
 dynamic_content_row_count (动态内容行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:3k
-runtime_clickable_node_count (运行时可点击节点数) = 13:(13+3k)
+runtime_clickable_node_count (运行时可点击节点数) = 14:(14+3k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -60,11 +60,12 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_library_home | current filters | file download |
-| 10 | 类型筛选 | Type Filter | btn_admin_library_type | db_resource + db_case | all|resource|case | local/API filter |
-| 11 | 分类筛选 | Category Filter | btn_admin_library_category | db_resource + db_case | all|resource_tag | local/API filter |
-| 12 | 状态筛选 | Status Filter | btn_admin_library_status | db_resource + db_case | all|approved|pending|withdrawn | local/API filter |
-| 13 | 名称搜索 | Name Search | btn_admin_library_search | db_admin_library_home | query_text | local/API filter |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_library_home | current filters | file download |
+| 11 | 类型筛选 | Type Filter | btn_admin_library_type | db_resource + db_case | all|resource|case | local/API filter |
+| 12 | 分类筛选 | Category Filter | btn_admin_library_category | db_resource + db_case | all|resource_tag | local/API filter |
+| 13 | 状态筛选 | Status Filter | btn_admin_library_status | db_resource + db_case | all|approved|pending|withdrawn | local/API filter |
+| 14 | 名称搜索 | Name Search | btn_admin_library_search | db_admin_library_home | query_text | local/API filter |
 
 
 [DYNAMIC_CONTENT_NODE]

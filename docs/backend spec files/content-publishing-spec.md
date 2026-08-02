@@ -2,10 +2,10 @@ ADMIN_CONTENT_PUBLISHING_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#content
 source_page (参考页面) = index.html
-static_node_count (固定按钮节点数) = 16
+static_node_count (固定按钮节点数) = 17
 dynamic_content_row_count (动态内容行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:2k
-runtime_clickable_node_count (运行时可点击节点数) = 16:(16+2k)
+runtime_clickable_node_count (运行时可点击节点数) = 17:(17+2k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -59,14 +59,15 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_content_home | current tab | file download |
-| 10 | 党建学习 | Party Content Tab | btn_admin_content_party | db_party_study + db_party_activity + db_party_brand | NULL | local/API tab |
-| 11 | 通知文件 | Coordination Content Tab | btn_admin_content_coord | db_coord_document | NULL | local/API tab |
-| 12 | 教研培训 | Training Content Tab | btn_admin_content_training | db_training | NULL | local/API tab |
-| 13 | 发布内容 | Open Publish | btn_admin_content_open_publish | selected canonical object | NULL | open modal |
-| 14 | 上传附件 | Upload Attachment | btn_admin_content_upload_file | db_file | local file | upload and return file_id |
-| 15 | 取消 | Cancel | btn_admin_content_cancel | selected canonical object | NULL | close modal |
-| 16 | 发布 | Publish | btn_admin_content_publish | selected canonical object | validated form + file_id | create/publish |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_content_home | current tab | file download |
+| 11 | 党建学习 | Party Content Tab | btn_admin_content_party | db_party_study + db_party_activity + db_party_brand | NULL | local/API tab |
+| 12 | 通知文件 | Coordination Content Tab | btn_admin_content_coord | db_coord_document | NULL | local/API tab |
+| 13 | 教研培训 | Training Content Tab | btn_admin_content_training | db_training | NULL | local/API tab |
+| 14 | 发布内容 | Open Publish | btn_admin_content_open_publish | selected canonical object | NULL | open modal |
+| 15 | 上传附件 | Upload Attachment | btn_admin_content_upload_file | db_file | local file | upload and return file_id |
+| 16 | 取消 | Cancel | btn_admin_content_cancel | selected canonical object | NULL | close modal |
+| 17 | 发布 | Publish | btn_admin_content_publish | selected canonical object | validated form + file_id | create/publish |
 
 
 [CATEGORY_OBJECT_MAP]

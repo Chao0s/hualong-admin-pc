@@ -2,11 +2,11 @@ ADMIN_REVIEW_CENTER_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#review
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 14
+static_node_count (固定操作节点数) = 15
 dynamic_review_row_count (动态审核行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:3k
 dynamic_attachment_preview_count (动态附件预览数) = 0:a
-runtime_clickable_node_count (运行时可点击节点数) = 14:(14+3k+a)
+runtime_clickable_node_count (运行时可点击节点数) = 15:(15+3k+a)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -62,12 +62,13 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_review_home | current filter | file download |
-| 10 | 资源 | Resources Tab | btn_admin_review_resource | db_upload + db_resource | target_type=resource | local filter |
-| 11 | 案例 | Cases Tab | btn_admin_review_case | db_upload + db_case | target_type=case | local filter |
-| 12 | 教师资料 | Teacher Profile Tab | btn_admin_review_profile | db_teacher_profile_change | target_type=teacher_profile_change | local filter |
-| 13 | 研修反馈 | Training Feedback Tab | btn_admin_review_feedback | db_training_feedback | target_type=training_feedback | local filter |
-| 14 | 搜索 | Search | btn_admin_review_search | db_admin_review_home | query_text | local/API filter |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_review_home | current filter | file download |
+| 11 | 资源 | Resources Tab | btn_admin_review_resource | db_upload + db_resource | target_type=resource | local filter |
+| 12 | 案例 | Cases Tab | btn_admin_review_case | db_upload + db_case | target_type=case | local filter |
+| 13 | 教师资料 | Teacher Profile Tab | btn_admin_review_profile | db_teacher_profile_change | target_type=teacher_profile_change | local filter |
+| 14 | 研修反馈 | Training Feedback Tab | btn_admin_review_feedback | db_training_feedback | target_type=training_feedback | local filter |
+| 15 | 搜索 | Search | btn_admin_review_search | db_admin_review_home | query_text | local/API filter |
 
 
 [DYNAMIC_CONTENT_NODE]

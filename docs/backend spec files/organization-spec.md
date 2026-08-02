@@ -2,11 +2,11 @@ ADMIN_ORGANIZATION_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#org
 source_page (参考页面) = index.html
-static_node_count (固定按钮节点数) = 16
+static_node_count (固定按钮节点数) = 17
 dynamic_teacher_action_count (教师行动态操作数) = 0:2t
 dynamic_class_action_count (班级行动态操作数) = 0:c
 dynamic_child_action_count (幼儿行动态操作数) = 0:h
-runtime_clickable_node_count (运行时可点击节点数) = 16:(16+2t+c+h)
+runtime_clickable_node_count (运行时可点击节点数) = 17:(17+2t+c+h)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -64,14 +64,15 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_org_home | current tab/filter | file download |
-| 10 | 教师 | Teachers Tab | btn_admin_org_teacher | db_teacher | NULL | local/API tab |
-| 11 | 班级 | Classes Tab | btn_admin_org_class | db_class | NULL | local/API tab |
-| 12 | 幼儿 | Children Tab | btn_admin_org_child | db_child | NULL | local/API tab |
-| 13 | 搜索 | Search | btn_admin_org_search | db_admin_org_home | query_text | local/API filter |
-| 14 | 新增教师/班级/幼儿 | Add Entity | btn_admin_org_add | selected canonical object | selected tab | open modal |
-| 15 | 取消 | Cancel | btn_admin_org_cancel | selected canonical object | NULL | close modal |
-| 16 | 保存 | Save | btn_admin_org_save | selected canonical object | validated form | create entity/relation |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_org_home | current tab/filter | file download |
+| 11 | 教师 | Teachers Tab | btn_admin_org_teacher | db_teacher | NULL | local/API tab |
+| 12 | 班级 | Classes Tab | btn_admin_org_class | db_class | NULL | local/API tab |
+| 13 | 幼儿 | Children Tab | btn_admin_org_child | db_child | NULL | local/API tab |
+| 14 | 搜索 | Search | btn_admin_org_search | db_admin_org_home | query_text | local/API filter |
+| 15 | 新增教师/班级/幼儿 | Add Entity | btn_admin_org_add | selected canonical object | selected tab | open modal |
+| 16 | 取消 | Cancel | btn_admin_org_cancel | selected canonical object | NULL | close modal |
+| 17 | 保存 | Save | btn_admin_org_save | selected canonical object | validated form | create entity/relation |
 
 
 [FORM_FIELD_INDEX]

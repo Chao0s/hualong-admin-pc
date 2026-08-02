@@ -2,9 +2,9 @@ ADMIN_DASHBOARD_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#dashboard
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 13
+static_node_count (固定操作节点数) = 14
 dynamic_review_action_count (动态快捷审核节点数) = 0:6
-runtime_clickable_node_count (运行时可点击节点数) = 13:19
+runtime_clickable_node_count (运行时可点击节点数) = 14:20
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -58,11 +58,12 @@ environment_isolation (环境隔离) = demo|test 数据不得复制到 productio
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_home | current_school_id, filter_context | file download |
-| 10 | 查看/收起数据表 | Toggle Trend Table | btn_admin_dashboard_trend_table | db_admin_home | NULL | local expand/collapse |
-| 11 | 全部审核 | Review All | btn_admin_dashboard_review_all | db_admin_review_home | current_school_id | index.html#review |
-| 12 | 去审核 | Go to Review | btn_admin_dashboard_review | db_admin_review_home | current_school_id | index.html#review |
-| 13 | 测评数据 | Assessment Data | btn_admin_dashboard_assessment | db_admin_assessment_home | current_school_id | index.html#assessment |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_home | current_school_id, filter_context | file download |
+| 11 | 查看/收起数据表 | Toggle Trend Table | btn_admin_dashboard_trend_table | db_admin_home | NULL | local expand/collapse |
+| 12 | 全部审核 | Review All | btn_admin_dashboard_review_all | db_admin_review_home | current_school_id | index.html#review |
+| 13 | 去审核 | Go to Review | btn_admin_dashboard_review | db_admin_review_home | current_school_id | index.html#review |
+| 14 | 测评数据 | Assessment Data | btn_admin_dashboard_assessment | db_admin_assessment_home | current_school_id | index.html#assessment |
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -158,11 +159,12 @@ IF no real classes, assessment_rows=[] AND show assessment_empty_title=暂无班
 | nav_admin_home_school | db_admin_home_school_home | index.html#home-school | 0 |
 | nav_admin_org | db_admin_org_home | index.html#org | 0 |
 | nav_admin_content | db_admin_content_home | index.html#content | 0 |
+| nav_admin_growth_book | db_admin_growth_book_setting_home | index.html#growthbook | 0 |
 
 
 [JUMP_VALIDATION]
 
-IF view NOT_IN(dashboard,review,library,tasks,assessment,home-school,org,content), return 400
+IF view NOT_IN(dashboard,review,library,tasks,assessment,home-school,org,content,growthbook), return 400
 IF admin_id NOT_AUTHORIZED_FOR current_school_id, return 403
 IF required permission missing, return 403
 IF node_key=admin_dashboard_review_approve, REQUIRE target_type AND object_id FROM query_result; re-read pending status atomically; NOT_FOUND=404; non-pending=409

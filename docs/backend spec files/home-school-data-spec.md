@@ -2,10 +2,10 @@ ADMIN_HOME_SCHOOL_DATA_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#home-school
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 9
+static_node_count (固定操作节点数) = 10
 dynamic_class_row_count (动态班级行数) = 0:k
 dynamic_detail_action_count (动态明细节点数) = 0:k
-runtime_clickable_node_count (运行时可点击节点数) = 9:(9+k)
+runtime_clickable_node_count (运行时可点击节点数) = 10:(10+k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -61,7 +61,8 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_home_school_home | current period | file download |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_home_school_home | current period | file download |
 
 
 [DYNAMIC_CONTENT_NODE]

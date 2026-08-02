@@ -2,10 +2,10 @@ ADMIN_ASSESSMENT_DATA_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#assessment
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 12
+static_node_count (固定操作节点数) = 13
 dynamic_class_row_count (动态班级行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:2k
-runtime_clickable_node_count (运行时可点击节点数) = 12:(12+2k)
+runtime_clickable_node_count (运行时可点击节点数) = 13:(13+2k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -62,10 +62,11 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_assessment_home | current filters | file download |
-| 10 | 班级选择 | Class Selector | btn_admin_assessment_class | db_class | class_id FROM authorized query | refresh table/radar |
-| 11 | 学期选择 | Term Selector | btn_admin_assessment_term | db_assessment | assessment_period | refresh table/radar |
-| 12 | 导出班级报告 | Export Class Report | btn_admin_assessment_export | db_assessment + db_assessment_item | class_id, period | generated file download |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_assessment_home | current filters | file download |
+| 11 | 班级选择 | Class Selector | btn_admin_assessment_class | db_class | class_id FROM authorized query | refresh table/radar |
+| 12 | 学期选择 | Term Selector | btn_admin_assessment_term | db_assessment | assessment_period | refresh table/radar |
+| 13 | 导出班级报告 | Export Class Report | btn_admin_assessment_export | db_assessment + db_assessment_item | class_id, period | generated file download |
 
 
 [DYNAMIC_CONTENT_NODE]

@@ -2,10 +2,10 @@ ADMIN_TASK_MANAGEMENT_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#tasks
 source_page (参考页面) = index.html
-static_node_count (固定按钮节点数) = 15
+static_node_count (固定按钮节点数) = 16
 dynamic_task_row_count (动态任务行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:2k
-runtime_clickable_node_count (运行时可点击节点数) = 15:(15+2k)
+runtime_clickable_node_count (运行时可点击节点数) = 16:(16+2k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -61,13 +61,14 @@ environment_isolation = demo|test 数据不得复制到 production
 | 6 | 家园共育数据 | Home-School Data | nav_admin_home_school | nav_admin_home_school | NULL | index.html#home-school |
 | 7 | 组织管理 | Organization Management | nav_admin_org | nav_admin_org | NULL | index.html#org |
 | 8 | 内容发布 | Content Publishing | nav_admin_content | nav_admin_content | NULL | index.html#content |
-| 9 | 导出数据 | Export Data | btn_admin_export | db_admin_task_home | current filter | file download |
-| 10 | 全部 | All Tasks | btn_admin_tasks_all | db_task | all | local/API filter |
-| 11 | 进行中 | Active Tasks | btn_admin_tasks_active | db_task | wait_accept|in_progress | local/API filter |
-| 12 | 已完成 | Completed Tasks | btn_admin_tasks_complete | db_task | complete | local/API filter |
-| 13 | 发布任务 | Publish Task | btn_admin_tasks_open_publish | db_task | NULL | open modal |
-| 14 | 取消 | Cancel | btn_admin_tasks_cancel | db_task | NULL | close modal |
-| 15 | 发布 | Publish | btn_admin_tasks_publish | db_task + db_task_assign | validated form | create task and assignments |
+| 9 | 成长册设置 | Growth Book Setting | nav_admin_growth_book | nav_admin_growth_book | NULL | index.html#growthbook |
+| 10 | 导出数据 | Export Data | btn_admin_export | db_admin_task_home | current filter | file download |
+| 11 | 全部 | All Tasks | btn_admin_tasks_all | db_task | all | local/API filter |
+| 12 | 进行中 | Active Tasks | btn_admin_tasks_active | db_task | wait_accept|in_progress | local/API filter |
+| 13 | 已完成 | Completed Tasks | btn_admin_tasks_complete | db_task | complete | local/API filter |
+| 14 | 发布任务 | Publish Task | btn_admin_tasks_open_publish | db_task | NULL | open modal |
+| 15 | 取消 | Cancel | btn_admin_tasks_cancel | db_task | NULL | close modal |
+| 16 | 发布 | Publish | btn_admin_tasks_publish | db_task + db_task_assign | validated form | create task and assignments |
 
 
 [FORM_FIELD_INDEX]
