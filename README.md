@@ -26,6 +26,26 @@
 
 完整的信息架构与数据联动图见 [`docs/信息架构.md`](./docs/信息架构.md)（Mermaid 格式，可在 GitHub 直接渲染）。
 
+## 文档地图
+
+本仓库的文档：
+
+| 文件 | 内容 |
+|---|---|
+| [`decision.md`](./decision.md) | **前端修改记录** —— 原型评审后的每一条修改决定 + 对 backend 的影响。与 `hualong-teacher` / `hualong-parent` 同一约定 |
+| [`docs/信息架构.md`](./docs/信息架构.md) | 九个视图的信息架构与三端数据联动图 |
+| [`docs/spec-handoff.md`](./docs/spec-handoff.md) | **跨端 canonical 对象注册表** —— 提出任何新 `db_*` 对象之前必须先查这里的第 3、5、6 三节 |
+| `docs/backend spec files/` | 九份后端对象规格，一个视图一份 |
+
+**权威来源在后端仓库 `hualong-backend`，本仓库不复制**：
+
+| 文件 | 内容 |
+|---|---|
+| `docs/ADR-0012-growth-book-content-ownership.md` | 成长册归属：园所填内容 / 我们定版面与美术 / 班级填班级事，含三条判准 |
+| `DECISIONS.md` | 已定决议与代价。本仓库相关的是 **E9**（管理端落地） |
+| `db/GAPS.md` | schema 与规格之间的已知缺口 |
+| `db/spec/screens.tsv` | 三端全部页面的总表，含每页写入的主要数据表 |
+
 ## 说明
 
 - 当前为**产品原型**，数据均为演示用模拟数据，操作（审核 / 发布 / 推荐等）仅在前端联动，未接入后端。
