@@ -1,0 +1,18 @@
+# Tooling / agent scratch dirs
+.od-skills/
+*.artifact.json
+
+# Crash dumps
+*.stackdump
+
+# Office lock files
+~$*
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
