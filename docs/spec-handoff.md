@@ -6,13 +6,19 @@ This file transfers the specification rules from the Teacher App to the Parent A
 
 All three apps belong to the same kindergarten, communicate with each other, and use the same database. UI pages and page aggregates may be app-specific, but the same business record must always reuse the same canonical `db_*` object.
 
-Teacher App reference specs:
+Teacher App reference specs (filenames carry a numeric prefix in the Teacher repo):
 
-- `home-spec.md`
-- `school-affairs-spec.md`
-- `comprehensive-coordination-spec.md`
-- `training-center-spec.md`
-- `home-school-spec.md`
+- `01 home-spec.md`
+- `02 school-affairs-spec.md`
+- `03 comprehensive-coordination-spec.md`
+- `04 training-center-spec.md`
+- `05 home-school-spec.md`
+
+Parent App specs: `home-spec.md`, `child-profile-spec.md`, `growth-book-spec.md`, `kindergarten-moments-spec.md`, `parent-tasks-spec.md`.
+
+Admin App specs: the nine files under `docs/backend spec files/`.
+
+The backend repository is the authority for landed DDL (`db/01_schema.sql`, machine-readable in `db/spec/tables.tsv`) and for decisions (`DECISIONS.md`, `db/GAPS.md`). **When this registry and the backend disagree, the backend wins and this file must be corrected.**
 
 
 ## 2. Non-Negotiable Rules
@@ -35,25 +41,29 @@ Teacher App reference specs:
 
 ## 3. Canonical Existing Object Registry
 
+> **The registry does not end here.** This section covers only what the Teacher App handed over. Objects introduced later by the Parent/Admin apps are in section 5, and objects that are decided but whose DDL has not landed are in section 6. Search all three before proposing anything new.
+
 ### Identity and access context
 
 | Canonical object | Meaning | Defined in |
 |---|---|---|
-| `db_school` | Kindergarten/school | `home-spec.md` |
-| `db_teacher` | Teacher identity | `home-spec.md` |
-| `db_class` | Class identity | `home-spec.md` |
-| `db_teacher_class` | Authorized teacher-class relationship | `home-spec.md` |
-| `db_child` | Child identity and class membership | `home-school-spec.md` |
-| `db_file` | Shared uploaded file/media metadata | `home-spec.md` |
+| `db_school` | Kindergarten/school | `01 home-spec.md` |
+| `db_teacher` | Teacher identity | `01 home-spec.md` |
+| `db_class` | Class identity | `01 home-spec.md` |
+| `db_teacher_class` | Authorized teacher-class relationship | `01 home-spec.md` |
+| `db_child` | Child identity and class membership | `05 home-school-spec.md` |
+| `db_file` | Shared uploaded file/media metadata | `01 home-spec.md` |
+| `db_file_ref` | File-to-owner reference row | `01 home-spec.md` |
+| `db_notification` | Cross-app notification | backend `db/01_schema.sql` |
 
 ### Tasks and submissions
 
 | Canonical object | Meaning | Defined in |
 |---|---|---|
-| `db_task` | Internal teacher work task | `home-spec.md` |
-| `db_task_assign` | Teacher work-task assignment | `home-spec.md` |
-| `db_parent_task` | Parent-child task issued by teacher | `home-school-spec.md` |
-| `db_parent_task_submission` | Parent/child submission for a parent task | `home-school-spec.md` |
+| `db_task` | Internal teacher work task | `01 home-spec.md` |
+| `db_task_assign` | Teacher work-task assignment | `01 home-spec.md` |
+| `db_parent_task` | Parent-child task issued by teacher | `05 home-school-spec.md` |
+| `db_parent_task_submission` | Parent/child submission for a parent task | `05 home-school-spec.md` |
 
 `db_task` and `db_parent_task` are different business entities and must not be merged.
 
@@ -61,36 +71,43 @@ Teacher App reference specs:
 
 | Canonical object | Meaning | Defined in |
 |---|---|---|
-| `db_upload` | Upload workflow record | `home-spec.md` |
-| `db_resource` | Course resource | `home-spec.md` |
-| `db_case` | Course case | `home-spec.md` |
-| `db_resource_case` | Resource-case many-to-many relation | `home-spec.md` |
-| `db_training` | Teaching research/training event | `home-spec.md` |
-| `db_training_recommendation` | Training-center recommendation placement | `training-center-spec.md` |
+| `db_upload` | Upload workflow record | `01 home-spec.md` |
+| `db_resource` | Course resource | `01 home-spec.md` |
+| `db_case` | Course case | `01 home-spec.md` |
+| `db_resource_case` | Resource-case many-to-many relation | `01 home-spec.md` |
+| `db_training` | Teaching research/training event | `01 home-spec.md` |
+| `db_training_recommendation` | Training-center recommendation placement | `04 training-center-spec.md` |
+| `db_home_case` | Teacher-home featured case placement | `01 home-spec.md` |
 
 ### Assessment, growth, and home-school collaboration
 
 | Canonical object | Meaning | Defined in |
 |---|---|---|
-| `db_assessment` | Quality assessment | `home-spec.md` |
-| `db_assessment_item` | Assessment item and score | `home-spec.md` |
-| `db_moment` | Kindergarten moment/activity | `home-spec.md` |
-| `db_moment_upload` | Per-child moment upload/progress | `home-spec.md` |
-| `db_month_eval` | Teacher monthly child evaluation | `home-spec.md` |
-| `db_growth_record` | Child growth-record aggregate | `home-school-spec.md` |
-| `db_growth_book` | Child growth book | `home-school-spec.md` |
-| `db_home_school_progress` | Non-persistent home-school progress view | `home-school-spec.md` |
-| `db_community_submission` | Community coeducation submission | `home-school-spec.md` |
+| `db_assessment` | Quality assessment | `01 home-spec.md` |
+| `db_assessment_item` | Assessment item and score | `01 home-spec.md` |
+| `db_moment` | Kindergarten moment/activity | `01 home-spec.md` |
+| `db_moment_upload` | Per-child moment upload/progress | `01 home-spec.md` |
+| `db_month_eval` | Teacher monthly child evaluation | `01 home-spec.md` |
+| `db_month_eval_moment` | Monthly-evaluation ↔ moment relation | `01 home-spec.md` |
+| `db_term_eval` | Teacher end-of-term child evaluation | `01 home-spec.md` |
+| `db_child_assessment` | Child comprehensive assessment (five domains) | `05 home-school-spec.md` |
+| `db_parent_evaluation` | Parent-side evaluation | `05 home-school-spec.md` |
+| `db_growth_record` | Child growth-record aggregate | `05 home-school-spec.md` |
+| `db_growth_book` | Child growth book | `05 home-school-spec.md` |
+| `db_home_school_progress` | Non-persistent home-school progress view | `05 home-school-spec.md` |
+| ~~`db_community_submission`~~ | **DEPRECATED** — see below | `05 home-school-spec.md` |
+
+`db_community_submission` is **deprecated by `DECISIONS.md` B11 (2026-07-30)**: community coeducation is a feed view over `db_parent_task` + `db_parent_task_submission`, not its own entity. The row still exists in the backend DDL because B11 is 已定/待實作. **Do not reference it in new specs, and do not resurrect it under another name.** The entry is kept here rather than deleted so the decision stays discoverable.
 
 ### Party affairs and coordination
 
 | Canonical object | Meaning | Defined in |
 |---|---|---|
-| `db_party_study` | Party-study document/content | `school-affairs-spec.md` |
-| `db_party_activity` | Party activity | `school-affairs-spec.md` |
-| `db_party_brand` | Party brand-building content | `school-affairs-spec.md` |
-| `db_party_feature` | Party-page featured/banner placement | `school-affairs-spec.md` |
-| `db_coord_document` | Coordination document with category enum | `comprehensive-coordination-spec.md` |
+| `db_party_study` | Party-study document/content | `02 school-affairs-spec.md` |
+| `db_party_activity` | Party activity | `02 school-affairs-spec.md` |
+| `db_party_brand` | Party brand-building content | `02 school-affairs-spec.md` |
+| `db_party_feature` | Party-page featured/banner placement | `02 school-affairs-spec.md` |
+| `db_coord_document` | Coordination document with category enum | `03 comprehensive-coordination-spec.md` |
 
 Do not create seven coordination document tables. Reuse `db_coord_document.coord_category`.
 
@@ -111,17 +128,57 @@ These page aggregates are Teacher App read models and must not be reused as Pare
 
 The following names are reserved for cross-app consistency. Define their fields once when first needed, then reuse them:
 
-| Reserved object | Intended meaning |
-|---|---|
-| `db_parent` | Parent/guardian identity |
-| `db_parent_child` | Authorized parent-child relationship |
-| `db_admin` | Admin identity |
-| `db_admin_school` | Authorized admin-school relationship and role scope |
+| Reserved object | Intended meaning | Defined in |
+|---|---|---|
+| `db_parent` | Parent/guardian identity | Parent App `home-spec.md` |
+| `db_parent_child` | Authorized parent-child relationship | Parent App `home-spec.md` |
+| `db_admin` | Admin identity | Admin App `dashboard-spec.md` |
+| `db_admin_school` | Authorized admin-school relationship and role scope | Admin App `dashboard-spec.md` |
+
+All four are now defined; treat them as REUSE, not as names still awaiting a first definition.
 
 Before creating another identity object, check whether one of these names represents the same entity.
 
 
-## 5. App-Specific Naming
+## 5. Objects Introduced by the Parent and Admin Apps
+
+Section 3 lists what the Teacher App handed over. These were introduced afterwards by a downstream app and are equally canonical — **check this section too before proposing a new object.**
+
+| Canonical object | Meaning | Defined in |
+|---|---|---|
+| `db_teacher_profile` | Teacher professional profile (job role, department) | Admin `review-spec.md` |
+| `db_teacher_credential` | Teacher certificate/credential attachment | Admin `review-spec.md` |
+| `db_teacher_profile_change` | Pending change request against a teacher profile | Admin `review-spec.md` |
+| `db_training_feedback` | Teacher feedback on a training event, public after review | Admin `review-spec.md` |
+| `db_review_action` | Review decision audit row — insert-only, same transaction as the decision | Admin `review-spec.md` |
+| `db_content_metric` | Non-persistent view/download metric aggregate | Admin `library-spec.md` |
+| `db_school_book_section` | School-level growth-book section, filled by admin and pushed read-only to teachers | Admin `growth-book-setting-spec.md` |
+
+`db_review_action` carries a security rule, not just a shape: the review decision, the target-table status update and the `db_review_action` insert must happen **in one transaction**, and the row is never updated or deleted (backend `CLAUDE.md` red line 2).
+
+`db_school_book_section` is **not** the same object as the class-level `db_growth_book_section`; the two differ in owner, lifecycle, collection behaviour and layout source. See `school_section_scope_rule` in `growth-book-setting-spec.md` before attempting to merge them.
+
+
+## 6. Decided but Not Yet Landed
+
+These objects are settled in the backend `DECISIONS.md` but their DDL has not been written. They are **already canonical for naming purposes** — do not invent a synonym because `tables.tsv` does not list them yet.
+
+| Object | Meaning | Decision | Spec |
+|---|---|---|---|
+| `db_teacher_message` | Teacher message to a child, 300 chars, no attachments | E1 | `05 home-school-spec.md` |
+| `db_scale_item` | Assessment scale item bank, versioned | E2 | `05 home-school-spec.md` |
+| `db_child_assessment_item` | Per-item score, 124 rows per assessment | E2 | `05 home-school-spec.md` |
+| `db_growth_book_template` | Growth-book template, class-level only | E3 / W13 / W19 | `05 home-school-spec.md` |
+| `db_growth_book_section` | Teacher-added growth-book section (class-level) | E3 / W13 | `05 home-school-spec.md` |
+| `db_book_widget` | Widget on a class-level section's grid | E3 / W5 | `05 home-school-spec.md` |
+| `db_book_material_submission` | Parent (or teacher-proxied) submission for one widget slot | E3 / W15 | `05 home-school-spec.md` |
+| `db_growth_material` | Class-level channel from moments/community into the growth book | E3 / W11 | `05 home-school-spec.md` |
+| `db_school_book_section` | School-level growth-book section | Admin-side, pending backend review | `growth-book-setting-spec.md` |
+
+Extensions to existing tables that are decided but unlanded — notably `db_school.school_intro` (B12) and `db_school.book_cover` (W19) — are tracked in the owning spec's `[CANONICAL_FIELD_EXTENSION]`, not here.
+
+
+## 7. App-Specific Naming
 
 ### Page aggregates
 
@@ -151,7 +208,7 @@ Navigation objects are UI routes, not database tables.
 - Navigation: follow the app-specific `nav_*` namespace
 
 
-## 6. Context and Security Rules
+## 8. Context and Security Rules
 
 ### Teacher App
 
@@ -192,7 +249,7 @@ backend authorization validation = REQUIRED
 `hidden` means the raw ID is not shown or directly editable. It is not a security control by itself.
 
 
-## 7. Cross-App Reuse Examples
+## 9. Cross-App Reuse Examples
 
 ### Parent task flow
 
@@ -224,7 +281,7 @@ App-specific featured placement may use a separate recommendation object
 The content object is shared; recommendation/page-placement objects may be app-specific.
 
 
-## 8. Mock and Production Empty-State Rules
+## 10. Mock and Production Empty-State Rules
 
 Treat all HTML examples as Mock by default, including:
 
@@ -251,7 +308,7 @@ Base identity data is the exception. Real schools, accounts, class rosters, pare
 If a real roster exists but no business record exists, show the real person with `not_started` only when the page genuinely requires a roster row. Never copy a Mock completion state.
 
 
-## 9. Required Spec Structure
+## 11. Required Spec Structure
 
 Use concise English filenames: `<page>-spec.md`.
 
@@ -294,7 +351,7 @@ Cardinality meanings:
 Entity primary IDs are normally `1:1`. Aggregate lists may use `0:k`.
 
 
-## 10. Relationship and Validation Format
+## 12. Relationship and Validation Format
 
 Example:
 
@@ -314,7 +371,7 @@ IF object status is draft|pending|rejected|deleted and viewer lacks permission, 
 ```
 
 
-## 11. Main Agent and Sub-Agent Governance
+## 13. Main Agent and Sub-Agent Governance
 
 The main agent must remain responsible for:
 
@@ -335,7 +392,7 @@ Sub-agents may:
 Sub-agents must not independently create or rename canonical shared objects. Any proposed new object must return to the main agent for collision checking and approval before use.
 
 
-## 12. Completion Checks
+## 14. Completion Checks
 
 Before reporting completion, verify:
 
@@ -354,7 +411,7 @@ Before reporting completion, verify:
 - [ ] A final cross-app reuse report lists reused and newly introduced objects.
 
 
-## 13. Copy-Paste Prompt for a New Conversation
+## 15. Copy-Paste Prompt for a New Conversation
 
 ```text
 You are continuing a backend object-specification project for a kindergarten platform with three connected apps: Teacher, Parent, and Admin. The apps have different pages and user roles but belong to the same kindergarten and use the same database.
@@ -371,8 +428,8 @@ Use database-generated IDs; never hard-code sample IDs. Raw identity IDs must be
 
 First perform these steps:
 1. Inventory the supplied core HTML pages and identify static navigation, dynamic business content, forms, filters, jumps, and Mock elements.
-2. Build an internal reuse map from every page concept to the canonical object registry in `spec-handoff.md`.
-3. Propose a new canonical object only when no existing object represents the same business entity. Use reserved identity names when applicable.
+2. Build an internal reuse map from every page concept to the canonical object registry in `spec-handoff.md`. The registry spans **three sections, not one**: section 3 (handed over by the Teacher App), section 5 (introduced later by the Parent/Admin apps), and section 6 (decided but DDL not yet landed). An object absent from the backend `tables.tsv` may still be canonical — check section 6 before concluding it does not exist.
+3. Propose a new canonical object only when no existing object in any of those three sections represents the same business entity. Use reserved identity names when applicable. Never reference an object marked DEPRECATED.
 4. Generate the requested `*-spec.md` files in the same style as the Teacher App specs.
 5. Validate node counts, navigation routes, object names, field names, enum reuse, `rel_count`, `rel_db`, `rel_map`, runtime IDs, context authorization, production-empty rules, and empty states.
 
@@ -380,8 +437,8 @@ Every spec should include the applicable sections from `spec-handoff.md`, especi
 
 At completion, provide:
 - links to all generated spec files;
-- a list of canonical objects reused from the Teacher App;
-- a list of genuinely new objects introduced for this app;
+- a list of canonical objects reused, split by which registry section they came from (3, 5, or 6);
+- a list of genuinely new objects introduced for this app, which must then be added to section 5 of `spec-handoff.md`;
 - any unresolved naming or permission questions;
 - validation results for node counts, relationships, navigation, and Mock-data exclusion.
 
