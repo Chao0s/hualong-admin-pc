@@ -259,10 +259,11 @@
   .field-hint { font-size: 11.5px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
   .char-count { font-size: 11.5px; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
 
-  /* 整册预览：按 A4 比例的示意页，非最终排版 */
+  /* 整册预览：A4 210×297mm；版心 = 减去左右 30mm、上下 28.5mm 边距后的 150×240mm（W1b）。
+     百分比 inset 按各自轴换算 —— 两轴用同一个百分比会让版心比例失真（后端 R26 在教师端踩过同一个坑）。 */
   .book-page { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 6px; aspect-ratio: 210 / 297; overflow: hidden; }
-  .book-frame { position: absolute; inset: 7% 8%; border: 1.5px solid; border-radius: 3px; opacity: .5; }
-  .book-body { position: absolute; inset: 12% 13%; display: flex; flex-direction: column; gap: 7px; }
+  .book-frame { position: absolute; inset: 6.5% 10%; border: 1.5px solid; border-radius: 3px; opacity: .5; }
+  .book-body { position: absolute; inset: 9.596% 14.286%; display: flex; flex-direction: column; gap: 7px; }
   .book-h { font-size: 11.5px; font-weight: 700; letter-spacing: -0.01em; }
   .book-p { font-size: 8.5px; line-height: 1.75; color: #4a4944; overflow: hidden; }
   .book-ph { background: var(--bg); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--muted); }
@@ -1531,16 +1532,24 @@ function gbCommitAll() {
 }
 
 /* --- 园所栏目清单 --- */
+/* 版式声明了槽位却没填 = 册子上会印出空白框，发布前必须补齐 */
+function gbSecMissing(s) {
+  const L = gbLayout(s.layout), miss = [];
+  const noPhoto = Array.from({ length: L.imgs }, (_, i) => s.photos[i]).filter(p => !p).length;
+  if (noPhoto) miss.push(`${noPhoto} 张照片`);
+  if (L.body && !(s.body || '').trim()) miss.push('正文');
+  return miss;
+}
 function renderGbSecList() {
   const pub = GB.status === 'published', order = gbOutline();
   const rows = order.filter(o => o.kind === 'school');
   $('#gb-sec-list').innerHTML = rows.length ? rows.map(o => {
-    const s = o.sec, L = gbLayout(s.layout);
+    const s = o.sec, L = gbLayout(s.layout), miss = gbSecMissing(s);
     const prev = order[order.findIndex(x => x.key === s.id) - 1];
     return `<div class="sec-row">
       <span class="badge badge-purple">园所</span>
       <div class="sec-main">
-        <div class="sec-name">${esc(s.name)}</div>
+        <div class="sec-name">${esc(s.name)}${miss.length ? `<span class="badge badge-amber" style="margin-left:7px">缺 ${miss.join('、')}</span>` : ''}</div>
         <div class="sec-sub">${L.name} · ${L.imgs ? L.imgs + ' 张图' : '无图'} · 排在「${esc(prev ? prev.name : '封面')}」之后</div>
       </div>
       <button class="btn btn-sm"${pub ? ' disabled' : ''} onclick="openGbSecModal('${s.id}')">编辑</button>
@@ -1611,6 +1620,8 @@ function toggleGbPublish() {
   }
   gbCommitAll();
   if (!GB.intro.trim()) { renderGrowthBook(); toast('园所介绍为空，无法发布（全园成长册都会不可生成）'); return; }
+  const bad = GB.sections.find(s => gbSecMissing(s).length);
+  if (bad) { renderGrowthBook(); toast(`「${bad.name}」还缺 ${gbSecMissing(bad).join('、')}，补齐后才能发布`); return; }
   GB.status = 'published'; renderGrowthBook();
   toast(`已发布 —— ${CLASSES.length} 个班的教师现在可以开始填充班级内容`);
 }

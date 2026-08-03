@@ -101,8 +101,8 @@ environment_isolation = demo|test 数据不得复制到 production
 | 栏目版式 | db_school_book_section.layout_code | 1 |
 | 插入位置 | db_school_book_section.anchor_after | 1 |
 | 栏目标题文字 | db_school_book_section.heading_text | 0 |
-| 栏目正文 | db_school_book_section.body_text | 0；版式声明 body=0 时不出该控件 |
-| 栏目照片 | db_school_book_section.file_id | 0:k；槽位数由 layout_code 声明，不可写 |
+| 栏目正文 | db_school_book_section.body_text | 草稿 0；版式声明 body=1 时发布必填。版式声明 body=0 时不出该控件 |
+| 栏目照片 | db_school_book_section.file_id | 草稿 0:k；发布须传满 layout_code 声明的槽位数。槽位数不可写 |
 
 commit_rule (确认保存的语意) = 园所介绍与园长寄语各有一个「确认保存」，写入的是草稿（book_setting_status 不变）。右侧预览随输入即时更新，但未点确认前不落库；页面另标「已保存 / ● 未保存」
 autosave_on_tab_switch = 园长寄语切换年级页签时，若当前页签有未保存修改则自动提交并 toast 告知，不静默丢弃
@@ -249,6 +249,13 @@ school_section_anchor_rule (锚点层级):
 删除时不留孤儿：锚在被删栏目之后的栏目改锚到它原本的锚点
 渲染端多轮扫描落位，仍解不开的（数据层的环或悬空锚点）一律落到册尾，不得让栏目消失
 
+school_section_completeness_rule (内容齐备才能发布 / 2026-08-03 前端评审):
+园所栏目缺内容 = 版式声明了 N 个照片槽位却未传满，或 版式声明 body=1 而 body_text 为空
+缺内容的栏目会在册子上印出空白框，因此**挡在发布这一步**，不挡保存草稿 —— 允许先建栏目占位、之后补齐
+判定只看版式声明的槽位：纯文字版式不要求照片，整页大图版式不要求正文，不得一律要求全字段
+提示强度：栏目行上一枚 badge（如「缺 1 张照片、正文」）+ 发布时一条 toast 点名第一个不齐备的栏目。不使用弹层或阻断式横幅 —— 管理者看一眼就知道少什么
+heading_text 为空不算缺内容：回落取 name，不会印出空白
+
 school_section_no_collection_rule (不向家长征集):
 园所栏目没有 binding_key=collected 的等价物，不产生家长端待办，不写 db_book_material_submission
 它是「填定即确定」的内容，与班级级新增栏目的征集流程完全不同 —— 后端不得复用同一套征集/齐备判定
@@ -282,8 +289,8 @@ IF principal_message 全部键为空, 该占位符不渲染
 IF book_setting_status=d1, 教师端模板接口返回 [] AND empty_title=园所尚未发布成长册设置
 IF layout manifest 为空, 返回 [] AND empty_title=版式库尚未部署
 IF 无园所栏目, 返回 [] AND empty_title=还没有园所栏目
-IF 园所栏目的照片槽位未上传, 该槽位在预览中留白, 不阻挡保存
-IF 园所栏目 body_text 为空 AND 版式声明 body=1, 预览显示占位提示, 不阻挡保存
+IF 园所栏目的照片槽位未上传, 该槽位在预览中留白, 不阻挡保存草稿
+IF 园所栏目 body_text 为空 AND 版式声明 body=1, 预览显示占位提示, 不阻挡保存草稿
 
 
 [NAV_OBJECTS]
@@ -301,6 +308,7 @@ IF file_id not uploaded/authorized for current admin and school, return 403
 IF 写入任一 db_school 本节字段 AND role!=admin, return 403
 IF admin lacks growth_book.setting.write, return 403
 IF 请求发布 AND book_template_code 为空 OR school_intro 为空, return 422
+IF 请求发布 AND 任一 db_school_book_section 的声明照片槽位未传满或声明的 body_text 为空, return 422 并回传该 section_id 与缺失项
 IF 撤回发布 AND book_setting_status!=d2, return 409
 IF principal_message 出现 default|k1|k2|k3 以外的键, return 400
 IF layout_code NOT_IN layout manifest 的栏目版式清单, return 400
