@@ -32,6 +32,7 @@
 
 | 文件 | 内容 |
 |---|---|
+| [`docs/adr/`](./docs/adr/) | **本仓库的架构决策记录** —— 只属于管理端的模块边界、视图划分、导航结构等决策。编号从 `0001` 起，与上游 ADR 各自独立 |
 | [`decision.md`](./decision.md) | **前端修改记录** —— 原型评审后的每一条修改决定 + 对 backend 的影响。与 `hualong-teacher` / `hualong-parent` 同一约定 |
 | [`docs/信息架构.md`](./docs/信息架构.md) | 九个视图的信息架构与三端数据联动图 |
 | [`docs/spec-handoff.md`](./docs/spec-handoff.md) | **跨端 canonical 对象注册表** —— 提出任何新 `db_*` 对象之前必须先查这里的第 3、5、6 三节 |

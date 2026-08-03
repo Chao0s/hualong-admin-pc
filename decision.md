@@ -3,7 +3,9 @@
 > 用途：记录管理端原型（`index.html`）在评审后的修改决定，供后续调整 backend spec（`docs/backend spec files/`）时对照。
 > 格式：每条记录 = 修改内容 + 涉及页面 + 对 backend 的影响。与 `hualong-teacher` / `hualong-parent` 两个仓库的 `decision.md` 同一约定。
 >
-> **权威来源在后端仓库，本文不复制那些内容**：
+> **本仓库自己的架构决策记在 [`docs/adr/`](docs/adr/)**：本文记「改了什么」，ADR 记「为什么这样划分、下次同类问题怎么裁」。
+>
+> **跨端的权威来源在后端仓库，本文不复制那些内容**：
 > - 成长册的归属规则（谁能改什么）见 `hualong-backend/docs/ADR-0012-growth-book-content-ownership.md`
 > - 决议与代价见 `hualong-backend/DECISIONS.md`（本仓库相关的是 **E9**）
 > - 跨端对象注册表见 [`docs/spec-handoff.md`](docs/spec-handoff.md)
