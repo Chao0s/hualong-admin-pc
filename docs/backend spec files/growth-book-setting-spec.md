@@ -2,12 +2,13 @@ ADMIN_GROWTH_BOOK_SETTING_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#growthbook
 source_page (参考页面) = index.html
-static_node_count (固定按钮节点数) = 27
+static_node_count (固定按钮节点数) = 29
 dynamic_template_card_count (动态模板卡片数) = 1:k
-dynamic_section_layout_card_count (动态栏目版式卡片数) = 1:k
+dynamic_section_layout_card_count (动态版式卡片数) = 1:k
+dynamic_preset_photo_slot_count (预设两节动态图位数) = 0:k
 dynamic_school_section_row_count (动态园所栏目行数) = 0:k
 dynamic_preview_page_count (动态预览页数) = 0:k
-runtime_clickable_node_count (运行时可点击节点数) = 27:(27+k)
+runtime_clickable_node_count (运行时可点击节点数) = 29:(29+k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -43,7 +44,7 @@ write_role_rule = db_school 的全部本节字段只有 admin 能写，school_id
 prototype_content = HTML 中模板卡片缩略图、示例园所介绍、示例园长寄语、示例园所栏目「园所大事记」、logo 与封面照片均为 Mock
 static_ui_content = 模块名、字段标签、年级页签名、栏目版式名、上传规格说明、按钮名和空状态文案
 business_seed = NONE
-production_initial_business_objects = db_school 本节六个字段 NULL；book_setting_status=d1；db_school_book_section EMPTY
+production_initial_business_objects = db_school 本节内容字段 NULL；intro_layout_code|message_layout_code 取版式库默认值 photo；book_setting_status=d1；db_school_book_section EMPTY
 layout_library_not_business_data = 页版式库（后端仓库 db/layout/*.json）随部署走、跟 git 走 code review，不是业务表，不受红线 5「生产业务表初始为空」约束；红线 5 的适用对象是 db_*
 dynamic_list_without_data = []
 dynamic_count_without_data = 0
@@ -83,6 +84,8 @@ environment_isolation = demo|test 数据不得复制到 production
 | 25 | 栏目 · 保存 | Save Section | btn_admin_gb_sec_save | db_school_book_section | validated form | create/update |
 | 26 | 栏目 · 删除 | Delete Section | btn_admin_gb_sec_delete | db_school_book_section | school_book_section_id | delete and re-anchor children |
 | 27 | 栏目 · 取消 | Cancel Section | btn_admin_gb_sec_cancel | db_school_book_section | NULL | close modal |
+| 28 | 园所介绍照片 · 上传 | Upload Intro Photo | btn_admin_gb_intro_upload | db_file | local file, slot index | upload and return file_id |
+| 29 | 园长寄语照片 · 上传 | Upload Message Photo | btn_admin_gb_msg_upload | db_file | local file, slot index | upload and return file_id |
 
 
 [FORM_FIELD_INDEX]
@@ -94,9 +97,13 @@ environment_isolation = demo|test 数据不得复制到 production
 | 园所 Logo | db_school.logo_file_id -> db_file.file_id | 0 |
 | 封面照片 | db_school.book_cover.image_file_id -> db_file.file_id | 0 |
 | 封面标题文字 | db_school.book_cover.title_text | 0 |
-| 园所介绍 | db_school.school_intro | 1 (发布前置) |
+| 园所介绍 · 版式 | db_school.intro_layout_code | 1 |
+| 园所介绍 · 正文 | db_school.school_intro | 1 (发布前置) |
+| 园所介绍 · 照片 | db_school.intro_file_id | 草稿 0:k；发布须传满 intro_layout_code 声明的槽位数 |
 | 园长寄语 · 通用 | db_school.principal_message.default | 0 |
 | 园长寄语 · 小/中/大班 | db_school.principal_message.k1/k2/k3 | 0 |
+| 园长寄语 · 版式 | db_school.message_layout_code | 1 |
+| 园长寄语 · 照片 | db_school.message_file_id | 草稿 0:k；整节有文字时发布须传满 message_layout_code 声明的槽位数 |
 | 栏目名称 | db_school_book_section.name | 1 |
 | 栏目版式 | db_school_book_section.layout_code | 1 |
 | 插入位置 | db_school_book_section.anchor_after | 1 |
@@ -110,7 +117,8 @@ publish_commits_drafts = 保存草稿与发布设置均先提交全部未保存�
 
 placeholder_fill_rule = 后端把以上取值嵌入所选 template 的同名占位符；管理端不产生版面，只产生内容
 cover_title_fallback = title_text 为空时取 db_school.school_name + template 自带的默认后缀，不由客户端拼接
-upload_constraint = logo 与封面照片走 db_file 通用上传；本 spec 不新增文件表，也不为美术素材开上传口
+upload_constraint = logo、封面照片、预设两节照片、栏目照片一律走 db_file 通用上传；本 spec 不新增文件表，也不为美术素材开上传口
+resolution_rule = 成长册只产出电子留档 PDF、不印刷，因此照片按 A4 150dpi（1240 × 1754px）为下限，不要求 300dpi、不要求出血、不要求 CMYK；固定 sRGB。文件体积是实际约束（成品要经 wx.shareFileMessage 发给家长，上限见 W21，未确认）
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -118,7 +126,8 @@ upload_constraint = logo 与封面照片走 db_file 通用上传；本 spec 不�
 | node_name_cn | node_key | object | input | cardinality | jump/action |
 |---|---|---|---|---|---|
 | 模板卡片 | admin_gb_template_card | layout library manifest | NULL | 1:k | select template_code |
-| 栏目版式卡片 | admin_gb_section_layout_card | layout library manifest | NULL | 1:k | select layout_code |
+| 栏目版式卡片 | admin_gb_section_layout_card | layout library manifest | NULL | 1:k | select layout_code（园所栏目出四种，预设两节只出带正文的三种） |
+| 预设节图位 | admin_gb_preset_photo_slot | db_file | slot index FROM layout_code | 0:k | upload |
 | 园所栏目行 | admin_gb_section_row | db_school_book_section | school_book_section_id FROM query_result | 0:k | NONE |
 | 栏目编辑 | admin_gb_section_edit | db_school_book_section | school_book_section_id FROM query_result | 0:k | open section modal |
 | 预览页 | admin_gb_preview_page | db_school + db_school_book_section + layout library | current draft values | 0:k | render only |
@@ -158,7 +167,11 @@ school_intro (园所介绍), 0:1, max_len=1000, ui=growth_book_setting.intro_inp
 logo_file_id (园所LogoID), 0:1, integer, ui=growth_book_setting.logo_upload
 book_template_code (成长册模板代码), 0:1, string, ui=growth_book_setting.template_select
 book_cover (封面配置), 0:1, json {image_file_id, title_text}, ui=growth_book_setting.cover_upload|growth_book_setting.cover_title
+intro_layout_code (园所介绍版式代码), 1:1, string, ui=growth_book_setting.intro_layout_select
+intro_file_id (园所介绍照片ID), 0:k, integer, ui=growth_book_setting.intro_photo_upload
 principal_message (园长寄语), 0:1, json {default, k1, k2, k3}, ui=growth_book_setting.principal_message
+message_layout_code (园长寄语版式代码), 1:1, string, ui=growth_book_setting.message_layout_select
+message_file_id (园长寄语照片ID), 0:k, integer, ui=growth_book_setting.message_photo_upload
 book_setting_status (成长册设置状态), 1:1, d1=draft(草稿)|d2=published(已发布), ui=growth_book_setting.status
 
 rel_count (关系数量) = 1
@@ -169,7 +182,7 @@ design_ownership_rule (美术归属 / 2026-08-03 前端评审，收窄 W19 推�
 封面与内页的美术（边框、底纹、配色）由我们提供的 1-2 套 template 承载，仍在后端仓库的页版式库里，园所不上传、不编排
 园所填的是内容占位符：logo、整体照片、园所名称、园所介绍、园长寄语
 DECISIONS.md W1b「若要推翻，请明说，那会多一个 admin 端的素材管理入口」不触发 —— 本 spec 不开素材管理入口
-连带成立：红线 5 不动、300dpi/出血/透明通道的品控门槛不转嫁给园所、W13「版面品质由我们负责」原样保留
+连带成立：红线 5 不动、分辨率/透明通道的品控门槛不转嫁给园所、W13「版面品质由我们负责」原样保留
 
 template_source_rule (模板取值来源):
 book_template_code 的合法取值来自后端仓库版式库的 manifest（db/layout/*.json），随部署走、跟 git 走 code review
@@ -180,6 +193,19 @@ cover_layout_id_note (登记不改判):
 W19 的 book_cover JSON 原含 layout_id。本 spec 把它上提为 book_template_code —— 封面与内页是同一套 template，不再单选封面版式
 上提后 book_cover 只剩 image_file_id 与 title_text 两个标量，JSON 的价值已消失，建议 DDL 落地时拆成两列
 本 spec 不自行改判，登记待后端确认
+
+preset_section_layout_rule (预设两节可选版式 / 2026-08-03 前端评审，扩充本 spec 初版):
+园所介绍与园长寄语初版只有纯文字，实际这两节都需要配图。改为与园所栏目**同一套版式**：从版式库选一个，只填占位符
+**只出带正文的三种**（纯文字 / 上图下文 / 两图并排）。这两节以文字为主，「整页大图」没有正文位，给了也用不上
+默认 photo（上图下文）—— 一张图配一段文字是这两节最常见的形态
+照片槽位数由 layout_code 声明，**不是可写字段、不落列**，同 school_section_layout_rule
+三处预览（填写区旁、整册预览、教师端渲染）走同一个渲染器，形状必定一致
+
+preset_layout_not_grade_scoped_rule (版式与照片不按年级分叉):
+园长寄语的**文字**按年级分叉（见下条），但**版式与照片整节一份**，四个年级共用
+理由与 no_grade_section_rule 同源：分叉只发生在文字层。版式一旦也按年级分叉，就等于四套版面，
+册子会因班级年级不同而长得不一样 —— 那正是「园所级 = 全园一样」这条定义要排除的情况
+若某年级确实需要不同的图，那是**班级级内容**，走教师端的新增栏目，不在本节
 
 principal_message_rule (园长寄语的年级变体 / 2026-08-03 前端评审):
 教师端按 db_class.grade 取 k1|k2|k3；该键为空回落 default；default 亦为空则该占位符不渲染，不留空框
@@ -249,6 +275,13 @@ school_section_anchor_rule (锚点层级):
 删除时不留孤儿：锚在被删栏目之后的栏目改锚到它原本的锚点
 渲染端多轮扫描落位，仍解不开的（数据层的环或悬空锚点）一律落到册尾，不得让栏目消失
 
+preset_section_completeness_rule (预设两节的齐备判定):
+与园所栏目同一套判定，作用于发布这一步，不挡保存草稿
+园所介绍：正文本来就是发布必填；版式声明了照片槽位则须传满
+园长寄语：**整节为空（通用与三个年级都没写）是合法的** —— 该占位符不渲染、不留空框，此时不检查图位；
+只有整节有文字时才要求传满槽位
+纯文字版式两节都不要求照片
+
 school_section_completeness_rule (内容齐备才能发布 / 2026-08-03 前端评审):
 园所栏目缺内容 = 版式声明了 N 个照片槽位却未传满，或 版式声明 body=1 而 body_text 为空
 缺内容的栏目会在册子上印出空白框，因此**挡在发布这一步**，不挡保存草稿 —— 允许先建栏目占位、之后补齐
@@ -276,6 +309,12 @@ db_school ADD logo_file_id(0:1, integer) —— 本 spec 新增
 db_school ADD book_template_code(0:1, string) —— 本 spec 新增
 db_school ADD principal_message(0:1, json {default,k1,k2,k3}) —— 本 spec 新增
 db_school ADD book_setting_status(1:1, d1=draft|d2=published, default d1) —— 本 spec 新增
+db_school ADD intro_layout_code(1:1, string, default photo) —— 本 spec 新增
+db_school ADD intro_file_id(0:k, integer) —— 本 spec 新增
+db_school ADD message_layout_code(1:1, string, default photo) —— 本 spec 新增
+db_school ADD message_file_id(0:k, integer) —— 本 spec 新增
+db_school_column_growth_note (登记不改判) = 本 spec 累计为 db_school 增 10 列，其中 8 列是成长册专属。DDL 落地时可考虑收进一个 JSON 列或独立的 db_school_book_setting 表，避免身份表被单一功能撑大。**管理端不自行改判**，因为 W19 与 B12 已经把 book_cover 与 school_intro 定为 db_school 的直接列，改动会推翻两条已定决议
+preset_section_file_note (0:k 的落列) = intro_file_id 与 message_file_id 的 0:k 走 db_file_ref（owner_object=db_school + usage_key）还是本表多列，未定；与 db_school_book_section.file_id 应取同一种做法
 extension_rule = extend the canonical db_school only; app-prefixed school/setting copies are FORBIDDEN
 preset_section_rule = 不新增预设栏目。园长寄语作为封面/扉页 template 的占位符，与 logo、园所名称、简介同层；预设 6 项的固定顺序（E3-1）不动
 naming_rule = 园长寄语 principal_message 与预设第 6 项「教师寄语」db_teacher_message 是两个对象，不得合并或互相取值
@@ -312,6 +351,10 @@ IF 请求发布 AND 任一 db_school_book_section 的声明照片槽位未传满
 IF 撤回发布 AND book_setting_status!=d2, return 409
 IF principal_message 出现 default|k1|k2|k3 以外的键, return 400
 IF layout_code NOT_IN layout manifest 的栏目版式清单, return 400
+IF intro_layout_code|message_layout_code NOT_IN layout manifest 中声明 body=1 的版式, return 400
+IF 请求发布 AND intro_layout_code 声明的照片槽位未传满, return 422
+IF 请求发布 AND principal_message 任一键非空 AND message_layout_code 声明的照片槽位未传满, return 422
+IF 上传照片数超过对应 layout_code 声明的槽位数, return 422
 IF school_book_section_id NOT_FROM authorized current_school query, return 404
 IF db_school_book_section.school_id != current_school_id, return 403
 IF anchor_after 指向班级级 db_growth_book_section, return 400

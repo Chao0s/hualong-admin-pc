@@ -286,7 +286,8 @@
   .lay-card { border: 1.5px solid var(--border); border-radius: 8px; padding: 7px; text-align: center; transition: .15s; }
   .lay-card:hover { border-color: var(--accent); }
   .lay-card.on { border-color: var(--accent); background: var(--accent-light); }
-  .lay-card svg { display: block; width: 100%; height: auto; }
+  /* 缩略图不随容器拉伸：弹层里列宽 ~115px，填写区左栏 ~330px，不封顶会撑成巨图 */
+  .lay-card svg { display: block; width: 100%; max-width: 76px; height: auto; margin: 0 auto; }
   .lay-name { font-size: 11px; font-weight: 600; margin-top: 5px; }
 
   @media (max-width: 1100px) {
@@ -579,7 +580,7 @@
                 <div class="upload-thumb" id="gb-cover-thumb">未上传</div>
                 <div class="upload-main">
                   <div class="upload-name" id="gb-cover-name">尚未上传</div>
-                  <div class="field-hint" style="margin-top:3px">≥ 2480 × 3508px（A4 300dpi）</div>
+                  <div class="field-hint" style="margin-top:3px">≥ 1240 × 1754px（A4 150dpi）</div>
                 </div>
                 <button class="btn btn-sm" onclick="fakeGbUpload('cover')">上传</button>
               </div>
@@ -599,11 +600,13 @@
               <button class="btn btn-sm" style="margin-left:10px" onclick="commitGbIntro()">确认保存</button>
             </span>
           </div>
-          <div class="card-sub">成长册预设第 1 个栏目「园所介绍」的正文，全园统一</div>
+          <div class="card-sub">成长册预设第 1 个栏目「园所介绍」，全园统一</div>
           <div class="gb-split">
             <div>
-              <textarea class="input" id="gb-intro" maxlength="1000" style="width:100%; min-height:184px" placeholder="办园理念 / 园所沿革 / 特色课程…"></textarea>
-              <div class="field-hint">发布前必填 —— 为空时全园每本成长册都不可生成。右侧预览随输入即时更新，「确认保存」才写入草稿。</div>
+              <div class="form-row"><label>版式</label><div class="lay-grid" id="gb-intro-layouts"></div></div>
+              <textarea class="input" id="gb-intro" maxlength="1000" style="width:100%; min-height:150px" placeholder="办园理念 / 园所沿革 / 特色课程…"></textarea>
+              <div id="gb-intro-photos" class="mt"></div>
+              <div class="field-hint">正文发布前必填 —— 为空时全园每本成长册都不可生成。右侧预览随输入即时更新，「确认保存」才写入草稿。</div>
             </div>
             <div>
               <div class="book-page" id="gb-intro-preview"></div>
@@ -629,7 +632,9 @@
           </div>
           <div class="gb-split mt">
             <div>
-              <textarea class="input" id="gb-msg" maxlength="500" style="width:100%; min-height:126px"></textarea>
+              <div class="form-row"><label>版式<span class="char-count" style="font-weight:400; margin-left:8px">整节一份，不按年级分叉</span></label><div class="lay-grid" id="gb-msg-layouts"></div></div>
+              <textarea class="input" id="gb-msg" maxlength="500" style="width:100%; min-height:110px"></textarea>
+              <div id="gb-msg-photos" class="mt"></div>
               <div class="field-hint" id="gb-msg-hint"></div>
             </div>
             <div>
@@ -1383,11 +1388,17 @@ const GB_SEC_LAYOUTS = [
 ];
 const gbLayout = c => GB_SEC_LAYOUTS.find(l => l.code === c) || GB_SEC_LAYOUTS[0];
 
+/* 预设两节（园所介绍 / 园长寄语）与园所栏目共用同一批版式，但只出带正文的三种 ——
+   这两节以文字为主，「整页大图」没有正文位，给了也用不上 */
+const gbBodyLayouts = () => GB_SEC_LAYOUTS.filter(l => l.body);
+
 let GB = {
   template: 'tpl-shuixiang',
   logo: '', cover: '', coverTitle: '',
   intro: '化龙第一幼儿园创办于 1998 年，坐落在珠江边的水乡古村旁。我们以「生活即教育」为办园理念，把醒狮、龙舟、香云纱这些身边的岭南文化，做成孩子看得见、摸得着的课程。',
+  introLayout: 'photo', introPhotos: [],
   msg: { default:'', k1:'', k2:'', k3:'' },
+  msgLayout: 'photo', msgPhotos: [],
   sections: [
     { id:'s1', name:'园所大事记', layout:'two-photo', anchor:'intro', htext:'我们这一年',
       body:'新的种植园在春天建成，孩子们把第一批秋葵种子埋进土里；秋天的龙舟节，六个班一起把纸龙舟放进了小河。',
@@ -1451,7 +1462,7 @@ function gbCoverInner(t) {
 function gbSecPage(t, s) {
   const L = gbLayout(s.layout), a = gbAlign(t);
   const head = `<div class="book-h" style="color:${t.accent}; text-align:${a}">${esc((s.htext||'').trim() || s.name || '未命名栏目')}</div>`;
-  const body = `<div class="book-p">${(s.body||'').trim() ? esc(s.body) : '（正文未填）'}</div>`;
+  const body = `<div class="book-p">${(s.body||'').trim() ? esc(s.body) : (s.emptyBody || '（正文未填）')}</div>`;
   const ph = (i, style) => `<div class="book-ph" style="${style}">${s.photos[i] ? esc(s.photos[i]) : '未上传照片'}</div>`;
   if (L.code === 'full')      return `<div class="book-body">${ph(0,'flex:1')}${head}</div>`;
   if (L.code === 'two-photo') return `<div class="book-body">${head}<div style="display:flex; gap:5px; height:36%">${ph(0,'flex:1')}${ph(1,'flex:1')}</div>${body}</div>`;
@@ -1499,16 +1510,63 @@ function fakeGbUpload(kind) {
   toast('原型演示：素材上传待接入（正式版会校验尺寸与透明通道）');
 }
 
+/* --- 版式选择器与照片槽位：预设两节和园所栏目共用同一套控件 --- */
+function gbLayoutPicker(list, current, onPick) {
+  return list.map(l => `
+    <button class="lay-card ${l.code === current ? 'on' : ''}" onclick="${onPick}('${l.code}')">
+      ${gbLayThumb(l, l.code === current)}<div class="lay-name">${l.name}</div>
+    </button>`).join('');
+}
+function gbPhotoSlots(photos, n, onUpload) {
+  return Array.from({ length: n }, (_, i) => `
+    <div class="upload-slot"${i < n - 1 ? ' style="margin-bottom:8px"' : ''}>
+      <div class="upload-thumb">${photos[i] ? '照片' : '未上传'}</div>
+      <div class="upload-main">
+        <div class="upload-name">${photos[i] ? esc(photos[i]) : '尚未上传'}</div>
+        <div class="field-hint" style="margin-top:3px">≥ 1240 × 1754px（A4 150dpi，电子留档够用）</div>
+      </div>
+      <button class="btn btn-sm" onclick="${onUpload}(${i})">上传</button>
+    </div>`).join('');
+}
+/* 把预设两节包装成与园所栏目同形的对象，三处预览走同一个渲染器 */
+const gbIntroAsSection = () => ({ layout: GB.introLayout, name: '园所介绍', htext: '园所介绍',
+  body: $('#gb-intro').value, photos: GB.introPhotos, emptyBody: '（园所介绍为空 —— 发布前必填）' });
+const gbMsgAsSection = txt => ({ layout: GB.msgLayout, name: '园长寄语', htext: '园长寄语',
+  body: txt, photos: GB.msgPhotos, emptyBody: '（未填写 —— 该占位符不渲染）' });
+
+function setGbIntroLayout(code) {
+  if (GB.status === 'published') { toast('已发布，需先撤回发布才能改版式'); return; }
+  GB.introLayout = code; gbDirty.intro = true; renderGrowthBook();
+}
+function setGbMsgLayout(code) {
+  if (GB.status === 'published') { toast('已发布，需先撤回发布才能改版式'); return; }
+  GB.msgLayout = code; gbDirty.msg = true; renderGrowthBook();
+}
+function fakeGbIntroUpload(i) {
+  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换素材'); return; }
+  GB.introPhotos[i] = `园所介绍-${i + 1}.jpg`; renderGrowthBook();
+  toast('原型演示：素材上传待接入');
+}
+function fakeGbMsgUpload(i) {
+  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换素材'); return; }
+  GB.msgPhotos[i] = `园长寄语-${i + 1}.jpg`; renderGrowthBook();
+  toast('原型演示：素材上传待接入');
+}
+
 /* --- 填写区的即时预览与「确认保存」 --- */
 function renderGbIntroPreview() {
   const t = gbTpl();
-  $('#gb-intro-preview').innerHTML = gbFrame(t) + gbTextPageInner(t, '园所介绍', $('#gb-intro').value, '（园所介绍为空 —— 发布前必填）');
+  $('#gb-intro-layouts').innerHTML = gbLayoutPicker(gbBodyLayouts(), GB.introLayout, 'setGbIntroLayout');
+  $('#gb-intro-photos').innerHTML = gbPhotoSlots(GB.introPhotos, gbLayout(GB.introLayout).imgs, 'fakeGbIntroUpload');
+  $('#gb-intro-preview').innerHTML = gbFrame(t) + gbSecPage(t, gbIntroAsSection());
 }
 function renderGbMsgPreview() {
   const t = gbTpl(), g = gbMsgTab, live = $('#gb-msg').value;
   const shown = live.trim() || (g === 'default' ? '' : GB.msg.default.trim());
   const fellBack = g !== 'default' && !live.trim() && shown;
-  $('#gb-msg-preview').innerHTML = gbFrame(t) + gbTextPageInner(t, '园长寄语', shown, '（未填写 —— 该占位符不渲染）');
+  $('#gb-msg-layouts').innerHTML = gbLayoutPicker(gbBodyLayouts(), GB.msgLayout, 'setGbMsgLayout');
+  $('#gb-msg-photos').innerHTML = gbPhotoSlots(GB.msgPhotos, gbLayout(GB.msgLayout).imgs, 'fakeGbMsgUpload');
+  $('#gb-msg-preview').innerHTML = gbFrame(t) + gbSecPage(t, gbMsgAsSection(shown));
   $('#gb-msg-preview-cap').textContent = `扉页 · 园长寄语（${GB_GRADES[g]}）${fellBack ? ' 回落通用' : ''}`;
 }
 function renderGbDirty() {
@@ -1620,6 +1678,14 @@ function toggleGbPublish() {
   }
   gbCommitAll();
   if (!GB.intro.trim()) { renderGrowthBook(); toast('园所介绍为空，无法发布（全园成长册都会不可生成）'); return; }
+  // 预设两节与园所栏目走同一套齐备判定：版式声明了图位就得传满
+  const introMiss = gbSecMissing({ layout: GB.introLayout, body: GB.intro, photos: GB.introPhotos });
+  if (introMiss.length) { renderGrowthBook(); toast(`园所介绍还缺 ${introMiss.join('、')}，补齐后才能发布`); return; }
+  // 园长寄语整节为空是合法的（该占位符不渲染），只有写了内容才检查图位
+  if (Object.values(GB.msg).some(v => v.trim())) {
+    const msgMiss = gbSecMissing({ layout: GB.msgLayout, body: 'x', photos: GB.msgPhotos });
+    if (msgMiss.length) { renderGrowthBook(); toast(`园长寄语还缺 ${msgMiss.join('、')}，补齐后才能发布`); return; }
+  }
   const bad = GB.sections.find(s => gbSecMissing(s).length);
   if (bad) { renderGrowthBook(); toast(`「${bad.name}」还缺 ${gbSecMissing(bad).join('、')}，补齐后才能发布`); return; }
   GB.status = 'published'; renderGrowthBook();
@@ -1660,7 +1726,7 @@ function renderGbSecForm() {
       <div class="upload-thumb">${d.photos[i] ? '照片' : '未上传'}</div>
       <div class="upload-main">
         <div class="upload-name">${d.photos[i] ? esc(d.photos[i]) : '尚未上传'}</div>
-        <div class="field-hint" style="margin-top:3px">≥ 2480 × 3508px</div>
+        <div class="field-hint" style="margin-top:3px">≥ 1240 × 1754px（A4 150dpi）</div>
       </div>
       <button class="btn btn-sm" onclick="fakeGbSecUpload(${i})">上传</button>
     </div>`).join('');
@@ -1720,14 +1786,14 @@ function renderGbPreview() {
   const fellBack = g !== 'default' && !GB.msg[g].trim() && msg;
   const pages = [
     gbPage(t, gbCoverInner(t), '封面'),
-    gbPage(t, gbTextPageInner(t, '园长寄语', msg, '（未填写 —— 该占位符不渲染）'),
+    gbPage(t, gbSecPage(t, gbMsgAsSection(msg)),
       `扉页 · 园长寄语（${GB_GRADES[g]}）${fellBack ? ' 回落通用' : ''}`),
   ];
   gbOutline().forEach(o => {
     if (o.kind === 'cover') return;
     if (o.kind === 'preset') {
       if (o.key === 'intro') pages.push(gbPage(t,
-        gbTextPageInner(t, '园所介绍', GB.intro, '（园所介绍为空 —— 发布前必填）'), '园所介绍 · 预设第 1 栏'));
+        gbSecPage(t, { ...gbIntroAsSection(), body: GB.intro }), '园所介绍 · 预设第 1 栏'));
       return; // 其余预设项由教师端填充
     }
     pages.push(gbPage(t, gbSecPage(t, o.sec), `${esc(o.name)} · 园所栏目`));
