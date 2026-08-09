@@ -17,7 +17,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry (canonical 注册表) = docs/spec-handoff.md
 shared_object_source (共享对象来源) = dashboard-spec.md; Teacher App home-spec.md|training-center-spec.md
-shared_objects (共享对象) = db_admin, db_admin_school, db_school, db_teacher, db_file, db_upload, db_resource, db_case, db_training
+shared_objects (共享对象) = db_admin, db_admin_school, db_school, db_teacher, db_file, db_upload, db_resource, db_case, db_training, db_training_participation
 new_canonical_objects_defined_here (本页真正新增对象) = db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_review_action
 admin_page_aggregate (管理端页面聚合) = db_admin_review_home
 rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
@@ -169,13 +169,27 @@ school_id (园所ID), 1:1, integer, ui=context.hidden
 training_id (研修活动ID), 1:1, integer, ui=admin_review.feedback.training
 teacher_id (反馈教师ID), 1:1, integer, ui=admin_review.feedback.teacher
 feedback_text (反馈内容), 1:1, max_len=1000, ui=admin_review.feedback.text
-feedback_status (反馈状态), 1:1, s1=draft(草稿)|s2=pending(待审核)|s3=published(已公开)|s4=rejected(已驳回)|s5=withdrawn(已撤回), ui=admin_review.feedback.status
+feedback_status (反馈状态), 1:1, s2=pending(待审核)|s3=published(已公开)|s4=rejected(已驳回)|s5=withdrawn(已撤回), ui=admin_review.feedback.status
 submitted_at (提交时间), 0:1, datetime, ui=admin_review.feedback.submitted_at
 published_at (公开时间), 0:1, datetime, ui=context.hidden
 
 rel_count (关系数量) = 3
 rel_db (关联表) = db_school, db_training, db_teacher
 rel_map (关系字段) = db_training_feedback{school_id}<->db_school{school_id}; db_training_feedback{training_id}<->db_training{training_id}; db_training_feedback{teacher_id}<->db_teacher{teacher_id}
+visibility_rule = s2 pending|s4 rejected|s5 withdrawn only author and authorized review/admin flow may read; only s3 published is visible to all active formal teachers
+publication_rule = teacher submission never appears immediately in the public feedback list; approval decision + feedback_status=s3 + db_review_action insert are one transaction
+unique = training_id + teacher_id
+participation_rule = only matching db_training_participation.status=s3 completed and NOW>training.effective_end_at may submit; one optional feedback per teacher/training; feedback never affects completion
+content_rule = feedback_text required max 1000; attachments FORBIDDEN
+identity_rule = published list reads current db_teacher.teacher_name through teacher_id; no duplicated name snapshot
+draft_rule = server draft NONE；submit directly INSERTS s2 pending；unsubmitted text is page-local and discarded when leaving
+submission_lock = first successful submission permanently freezes feedback_text；s2|s3|s4|s5 cannot edit or submit again；UNIQUE(training_id,teacher_id) forbids a replacement row
+rejection_rule = target_type=training_feedback AND decision=d2 rejected REQUIRES decision_reason max 500；reason is returned to the author；other target types retain their own optionality
+terminal_rule = admin rejection s4 and author withdrawal s5 are terminal；row and immutable review actions remain；physical delete and resubmission are FORBIDDEN
+withdrawal_rule = author may change own s2 pending or s3 published feedback to s5；s2 exits review queue, s3 disappears publicly immediately；s4|s5 show no withdrawal action
+public_stream_rule = feedback is the only public comment stream；count only feedback_status=s3 while db_training.training_status=s1；ORDER BY published_at DESC, feedback_id DESC with stable cursor and load more
+training_withdrawn_rule = when training_status=s5, public count=0 and public stream=[] even though feedback rows and review history remain
+comment_entity = NONE；独立“评论”标签、计数、对象或回复审核流均禁止
 
 
 审核动作 (Review Action / db_review_action)
@@ -227,6 +241,7 @@ IF object_id not returned by current authorized query, return 404
 IF object.school_id != current_school_id, return 403
 IF admin lacks target-specific review permission, return 403
 IF current status != pending, return 409
+IF target_type=training_feedback AND decision=rejected AND decision_reason IS EMPTY, return 422
 IF decision=rejected AND product requires a reason, REQUIRE decision_reason ELSE return 422
 approval/rejection/status update/db_review_action creation MUST be one transaction
 raw admin_id|school_id|teacher_id from client MUST be ignored and re-derived

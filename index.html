@@ -137,6 +137,21 @@
 
   .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .toolbar .spacer { flex: 1; }
+  .coverage-grid { grid-template-columns: repeat(3, 1fr); margin-bottom: 14px; }
+  .coverage-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; }
+  .coverage-name { font-size: 13px; font-weight: 650; }
+  .coverage-sub { margin-top: 3px; font-size: 11.5px; color: var(--muted); }
+  .coverage-value { font-size: 22px; font-weight: 700; white-space: nowrap; }
+  .coverage-ok { border-color: #b8ded9; background: var(--accent-light); }
+  .coverage-warn { border-color: #f2d58c; background: var(--amber-light); }
+  .coverage-empty { border-color: #efb2b2; background: var(--danger-light); }
+  .coverage-ok .coverage-value { color: var(--accent-dark); }
+  .coverage-warn .coverage-value { color: #96660a; }
+  .coverage-empty .coverage-value { color: var(--danger); }
+  .sort-btn { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-weight: inherit; color: inherit; cursor: pointer; white-space: nowrap; }
+  .sort-btn::after { content: '↕'; color: var(--muted); font-size: 10px; }
+  .sort-btn[data-dir="asc"]::after { content: '↑'; color: var(--accent-dark); }
+  .sort-btn[data-dir="desc"]::after { content: '↓'; color: var(--accent-dark); }
   .input, select.input {
     padding: 7px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--surface); font-size: 13px; outline: none; min-width: 0;
@@ -431,16 +446,30 @@
 
       <!-- ======== 视图：资源与案例 ======== -->
       <section class="view" id="view-library">
+        <div class="grid coverage-grid" id="lib-grade-coverage" aria-label="教师首页案例年级覆盖率"></div>
         <div class="toolbar">
           <select class="input" id="lib-type"><option value="all">全部类型</option><option>资源</option><option>案例</option></select>
           <select class="input" id="lib-cat"><option value="all">全部分类</option><option>衣</option><option>食</option><option>住</option><option>行</option><option>艺</option></select>
+          <select class="input" id="lib-grade"><option value="all">全部年级</option><option>小班</option><option>中班</option><option>大班</option><option>通用</option></select>
+          <select class="input" id="lib-term" aria-label="学期时间窗口"></select>
           <select class="input" id="lib-status"><option value="all">全部状态</option><option>已发布</option><option>待审核</option><option>已下架</option></select>
           <div class="spacer"></div>
           <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="lib-search" placeholder="搜索名称"></div>
         </div>
         <div class="card" style="padding: 6px 20px;">
           <table class="tbl">
-            <thead><tr><th>名称</th><th>类型</th><th>分类</th><th>年级</th><th>上传人</th><th class="num">浏览</th><th>状态</th><th>推荐</th><th style="text-align:right">操作</th></tr></thead>
+            <thead><tr>
+              <th><button class="sort-btn" data-lib-sort="name">名称</button></th>
+              <th><button class="sort-btn" data-lib-sort="type">类型</button></th>
+              <th><button class="sort-btn" data-lib-sort="cat">分类</button></th>
+              <th><button class="sort-btn" data-lib-sort="grade">年级</button></th>
+              <th><button class="sort-btn" data-lib-sort="up">上传人</button></th>
+              <th><button class="sort-btn" data-lib-sort="createdAt">提交时间</button></th>
+              <th class="num"><button class="sort-btn" data-lib-sort="views">浏览</button></th>
+              <th><button class="sort-btn" data-lib-sort="status">状态</button></th>
+              <th><button class="sort-btn" data-lib-sort="rec">推荐</button></th>
+              <th style="text-align:right">操作</th>
+            </tr></thead>
             <tbody id="lib-tbody"></tbody>
           </table>
         </div>
@@ -809,16 +838,20 @@ let FEEDBACKS = [
 ];
 
 let LIBRARY = [
-  { name:'醒狮从哪里来', type:'案例', cat:'艺', grade:'大班', up:'黄敏华', views:326, status:'已发布', rec:true },
-  { name:'龙舟竞渡', type:'案例', cat:'行', grade:'中班', up:'王晓芸', views:298, status:'已发布', rec:true },
-  { name:'祠堂里的故事', type:'案例', cat:'住', grade:'大班', up:'张丽君', views:271, status:'已发布', rec:true },
-  { name:'岭南服饰纹样图库', type:'资源', cat:'衣', grade:'通用', up:'教研培训部', views:214, status:'已发布', rec:false },
-  { name:'广府饮食文化视频集', type:'资源', cat:'食', grade:'通用', up:'教研培训部', views:187, status:'已发布', rec:false },
-  { name:'水乡出行工具卡片', type:'资源', cat:'行', grade:'小班', up:'周雨桐', views:153, status:'已发布', rec:false },
-  { name:'镬耳屋建筑积木图纸', type:'资源', cat:'住', grade:'中班', up:'林嘉怡', views:142, status:'已发布', rec:false },
-  { name:'粤剧脸谱涂色素材', type:'资源', cat:'艺', grade:'小班', up:'李婉晴', views:139, status:'已发布', rec:false },
-  { name:'凉茶铺的一天', type:'案例', cat:'食', grade:'小班', up:'李婉晴', views:0, status:'待审核', rec:false },
-  { name:'旧版节气挂图（2024）', type:'资源', cat:'艺', grade:'通用', up:'教研培训部', views:96, status:'已下架', rec:false },
+  { name:'醒狮从哪里来', type:'案例', cat:'艺', grade:'大班', up:'黄敏华', createdAt:'2026-07-04', views:326, status:'已发布', rec:true },
+  { name:'龙舟竞渡', type:'案例', cat:'行', grade:'中班', up:'王晓芸', createdAt:'2026-06-28', views:298, status:'已发布', rec:true },
+  { name:'祠堂里的故事', type:'案例', cat:'住', grade:'大班', up:'张丽君', createdAt:'2026-05-19', views:271, status:'已发布', rec:true },
+  { name:'岭南服饰纹样图库', type:'资源', cat:'衣', grade:'通用', up:'教研培训部', createdAt:'2026-04-10', views:214, status:'已发布', rec:false },
+  { name:'广府饮食文化视频集', type:'资源', cat:'食', grade:'通用', up:'教研培训部', createdAt:'2026-03-22', views:187, status:'已发布', rec:false },
+  { name:'水乡出行工具卡片', type:'资源', cat:'行', grade:'小班', up:'周雨桐', createdAt:'2026-03-08', views:153, status:'已发布', rec:false },
+  { name:'镬耳屋建筑积木图纸', type:'资源', cat:'住', grade:'中班', up:'林嘉怡', createdAt:'2025-12-16', views:142, status:'已发布', rec:false },
+  { name:'粤剧脸谱涂色素材', type:'资源', cat:'艺', grade:'小班', up:'李婉晴', createdAt:'2025-11-09', views:139, status:'已发布', rec:false },
+  { name:'凉茶铺的一天', type:'案例', cat:'食', grade:'小班', up:'李婉晴', createdAt:'2026-07-06', views:0, status:'待审核', rec:false },
+  { name:'旧版节气挂图（2024）', type:'资源', cat:'艺', grade:'通用', up:'教研培训部', createdAt:'2025-09-18', views:96, status:'已下架', rec:false },
+];
+const SCHOOL_TERMS = [
+  { id:'2025-2026-2', name:'2025—2026 学年 · 第二学期', start:'2026-02-01', end:'2026-07-31', current:true },
+  { id:'2025-2026-1', name:'2025—2026 学年 · 第一学期', start:'2025-09-01', end:'2026-01-31', current:false },
 ];
 
 let TASKS = [
@@ -992,7 +1025,7 @@ function findPending(id) { return PENDING.find(p => p.id === id); }
 function approve(id) {
   const p = findPending(id);
   PENDING = PENDING.filter(x => x.id !== id);
-  LIBRARY.unshift({ name:p.name, type:p.type, cat:p.cat, grade:'通用', up:p.up.split(' ')[0], views:0, status:'已发布', rec:false });
+  LIBRARY.unshift({ name:p.name, type:p.type, cat:p.cat, grade:'通用', up:p.up.split(' ')[0], createdAt:new Date().toISOString().slice(0,10), views:0, status:'已发布', rec:false });
   closeModals(); renderReview(); renderLibrary(); renderDashQueue();
   toast(`已通过并发布：《${p.name}》`);
 }
@@ -1085,11 +1118,34 @@ function showFeedbackDetail(id) {
 </script>
 <script>
 /* ================= 资源与案例 ================= */
+let libSort = { key: null, dir: 'asc' };
 function renderLibrary() {
-  const ty = $('#lib-type').value, ca = $('#lib-cat').value, st = $('#lib-status').value, q = $('#lib-search').value.trim();
+  renderLibraryCoverage();
+  const ty = $('#lib-type').value, ca = $('#lib-cat').value, gr = $('#lib-grade').value;
+  const termId = $('#lib-term').value, st = $('#lib-status').value, q = $('#lib-search').value.trim();
+  const term = SCHOOL_TERMS.find(t => t.id === termId);
   const rows = LIBRARY.filter(r =>
     (ty === 'all' || r.type === ty) && (ca === 'all' || r.cat === ca) &&
+    (gr === 'all' || r.grade === gr) &&
+    (!term || (r.createdAt >= term.start && r.createdAt <= term.end)) &&
     (st === 'all' || r.status === st) && (!q || r.name.includes(q)));
+  if (libSort.key) {
+    const gradeRank = { '小班': 1, '中班': 2, '大班': 3, '通用': 4 };
+    rows.sort((a, b) => {
+      let av = a[libSort.key], bv = b[libSort.key];
+      if (libSort.key === 'grade') { av = gradeRank[av] || 99; bv = gradeRank[bv] || 99; }
+      if (libSort.key === 'rec') { av = av ? 1 : 0; bv = bv ? 1 : 0; }
+      const cmp = typeof av === 'number'
+        ? av - bv
+        : String(av).localeCompare(String(bv), 'zh-CN', { numeric: true, sensitivity: 'base' });
+      return libSort.dir === 'asc' ? cmp : -cmp;
+    });
+  }
+  $$('[data-lib-sort]').forEach(btn => {
+    const active = btn.dataset.libSort === libSort.key;
+    btn.dataset.dir = active ? libSort.dir : '';
+    btn.closest('th').setAttribute('aria-sort', active ? (libSort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
   $('#lib-tbody').innerHTML = rows.length ? rows.map((r, i) => `
     <tr>
       <td><div class="t-name">${esc(r.name)}</div></td>
@@ -1097,6 +1153,7 @@ function renderLibrary() {
       <td>${catBadge(r.cat)}</td>
       <td>${r.grade}</td>
       <td>${esc(r.up)}</td>
+      <td>${r.createdAt}</td>
       <td class="num">${r.views}</td>
       <td><span class="badge ${r.status==='已发布'?'badge-teal':r.status==='待审核'?'badge-amber':'badge-gray'}">${r.status}</span></td>
       <td><button class="btn btn-sm" style="${r.rec?'border-color:var(--amber);color:#96660a;background:var(--amber-light)':''}" onclick="toggleRec('${esc(r.name)}')">${r.rec?'★ 已推荐':'☆ 推荐'}</button></td>
@@ -1106,7 +1163,20 @@ function renderLibrary() {
           ? `<button class="btn btn-sm" onclick="setLibStatus('${esc(r.name)}','已发布')">上架</button>`
           : `<button class="btn btn-sm btn-danger-ghost" onclick="setLibStatus('${esc(r.name)}','已下架')">下架</button>`}
       </td>
-    </tr>`).join('') : `<tr><td colspan="9" class="empty-row">没有符合筛选条件的内容</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="10" class="empty-row">没有符合筛选条件的内容</td></tr>`;
+}
+function renderLibraryCoverage() {
+  const grades = ['小班', '中班', '大班'];
+  $('#lib-grade-coverage').innerHTML = grades.map(grade => {
+    const count = Math.min(3, LIBRARY.filter(r =>
+      r.type === '案例' && r.grade === grade && r.status === '已发布' && r.rec).length);
+    const cls = count === 0 ? 'coverage-empty' : count < 3 ? 'coverage-warn' : 'coverage-ok';
+    const note = count === 0 ? '教师首页将为空' : count < 3 ? '尚未覆盖满 3 条' : '覆盖充足';
+    return `<div class="card coverage-item ${cls}">
+      <div><div class="coverage-name">${grade}</div><div class="coverage-sub">${note}</div></div>
+      <div class="coverage-value">${count} / 3</div>
+    </div>`;
+  }).join('');
 }
 function toggleRec(name) {
   const r = LIBRARY.find(x => x.name === name); if (!r) return;
@@ -1117,8 +1187,18 @@ function setLibStatus(name, st) {
   const r = LIBRARY.find(x => x.name === name); if (!r) return;
   r.status = st; renderLibrary(); toast(`《${name}》${st === '已下架' ? '已下架' : '已重新上架'}`);
 }
-['lib-type','lib-cat','lib-status'].forEach(id => $('#'+id).addEventListener('change', renderLibrary));
+['lib-type','lib-cat','lib-grade','lib-term','lib-status'].forEach(id => $('#'+id).addEventListener('change', renderLibrary));
 $('#lib-search').addEventListener('input', renderLibrary);
+$$('[data-lib-sort]').forEach(btn => btn.addEventListener('click', () => {
+  const key = btn.dataset.libSort;
+  libSort = libSort.key === key ? { key, dir: libSort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' };
+  renderLibrary();
+}));
+function setupLibraryTerms() {
+  const current = SCHOOL_TERMS.find(t => t.current);
+  $('#lib-term').innerHTML = `<option value="all">全部时间</option>` + SCHOOL_TERMS.map(t =>
+    `<option value="${t.id}"${current && t.id === current.id ? ' selected' : ''}>${t.current ? '本学期 · ' : ''}${t.name}</option>`).join('');
+}
 
 /* ================= 任务管理 ================= */
 let taskFilter = 'all';
@@ -1958,7 +2038,7 @@ function drawEvalMeters() {
 
 /* ================= 初始化 ================= */
 renderKpis(); drawTrend(); drawDomainBars(); drawEvalMeters(); renderDashQueue();
-renderReview(); renderLibrary(); renderTasks();
+setupLibraryTerms(); renderReview(); renderLibrary(); renderTasks();
 renderAssess(); drawRadar(); renderHomeschool();
 renderOrg(); renderContent(); renderGrowthBook();
 </script>
