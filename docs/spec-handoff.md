@@ -175,6 +175,8 @@ These objects are settled in the backend `DECISIONS.md` but their DDL has not be
 | `db_growth_material` | Class-level channel from moments/community into the growth book | E3 / W11 | `05 home-school-spec.md` |
 | `db_school_book_section` | School-level growth-book section | Admin-side, pending backend review | `growth-book-setting-spec.md` |
 | `db_school_term` | School-level term calendar and authoritative date window | F3 | `library-spec.md` |
+| `db_content_check` | Ephemeral in-flight WeChat content checks; terminal batches are deleted | F12 | backend `DECISIONS.md` |
+| `db_child_profile_correction` | Immutable family request to correct child name, birth date and gender | F13 | `review-spec.md` |
 
 Extensions to existing tables that are decided but unlanded — notably `db_school.school_intro` (B12) and `db_school.book_cover` (W19) — are tracked in the owning spec's `[CANONICAL_FIELD_EXTENSION]`, not here.
 

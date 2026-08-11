@@ -171,3 +171,12 @@
 | 2 | 新对象声明键名有四种写法 | `new_canonical_objects_defined_here`（review-spec，复数）、`new_canonical_object_defined_here`（library-spec，单数）、`new_identity_objects_defined_here`（dashboard-spec）、`new_business_object`（其余四份）。抽取工具要认得写四个分支。注册表 §5 已有统一落点，收敛时机比之前好 |
 | 3 | 教师端连带未做 | `growth-book-render.js` 的 `SCHOOL_COVER` 常量与硬编码 6 色调色板要改成读园所设置；`05 home-school-spec.md` 的 `border_ownership` 要改写登记本次收窄 |
 | 4 | `db/README.md` 的「17 份 backend spec」 | 本仓库从 8 份变 9 份，该数字已过期。但原值 17 与实际（Teacher 5 + Parent 5 + Admin 8 = 18）本来就对不上，口径不明，**未擅改**，待能跑工具时重新推导 |
+
+---
+
+## 2026-08-12：幼儿资料更正审核（后端 F13）
+
+- 审核中心新增「幼儿资料」页签，内分待审核／已处理；两页都有班级与幼儿姓名筛选，已处理另有批准／驳回结果筛选。
+- 待审详情并排显示提交时原值与家长建议值；若正式资料后来变化，再显示当前系统值和覆盖提示。批准仍完整采用家长建议快照，不逐栏合并。
+- 任一有效同园管理端登录账号均可处理，不新增细分权限。批准、驳回都先一次确认；驳回理由须为 1—500 字。
+- 批准同交易写入 `db_child`、终结申请并插入 t6/d1 审核动作，不通知家庭；驳回同交易写 t6/d2，并通知决定当下全部监护人。

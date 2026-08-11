@@ -2,11 +2,11 @@ ADMIN_REVIEW_CENTER_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#review
 source_page (参考页面) = index.html
-static_node_count (固定操作节点数) = 15
+static_node_count (固定操作节点数) = 19
 dynamic_review_row_count (动态审核行数) = 0:k
 dynamic_row_action_count (动态行操作数) = 0:3k
 dynamic_attachment_preview_count (动态附件预览数) = 0:a
-runtime_clickable_node_count (运行时可点击节点数) = 15:(15+3k+a)
+runtime_clickable_node_count (运行时可点击节点数) = 19:(19+3k+a)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -17,7 +17,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry (canonical 注册表) = docs/spec-handoff.md
 shared_object_source (共享对象来源) = dashboard-spec.md; Teacher App home-spec.md|training-center-spec.md
-shared_objects (共享对象) = db_admin, db_admin_school, db_school, db_teacher, db_file, db_upload, db_resource, db_case, db_training, db_training_participation
+shared_objects (共享对象) = db_admin, db_admin_school, db_school, db_class, db_child, db_parent, db_teacher, db_file, db_upload, db_resource, db_case, db_training, db_training_participation, db_child_profile_correction
 new_canonical_objects_defined_here (本页真正新增对象) = db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_review_action
 admin_page_aggregate (管理端页面聚合) = db_admin_review_home
 rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
@@ -30,6 +30,7 @@ allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AN
 current_school_id MUST IN allowed_school_id
 permission = db_admin_school.role|permission_scope
 required_permission = review.resource|review.case|review.teacher_profile|review.training_feedback according to tab and target_type
+child_profile_permission = 任何有效同园管理端登录身份均可审核，不新增细分 permission；school_id 仍由 session 派生并内联校验
 raw_identity_id_ui = context.hidden
 client_editable = 0
 backend_authorization_validation = REQUIRED
@@ -69,13 +70,17 @@ environment_isolation = demo|test 数据不得复制到 production
 | 13 | 教师资料 | Teacher Profile Tab | btn_admin_review_profile | db_teacher_profile_change | target_type=teacher_profile_change | local filter |
 | 14 | 研修反馈 | Training Feedback Tab | btn_admin_review_feedback | db_training_feedback | target_type=training_feedback | local filter |
 | 15 | 搜索 | Search | btn_admin_review_search | db_admin_review_home | query_text | local/API filter |
+| 16 | 幼儿资料 | Child Profile Correction Tab | btn_admin_review_child_profile | db_child_profile_correction | target_type=child_profile_correction | local filter |
+| 17 | 待审核／已处理 | Correction Status Tabs | btn_admin_review_child_status | db_child_profile_correction | correction_status | API filter |
+| 18 | 班级筛选 | Correction Class Filter | btn_admin_review_child_class | db_child_profile_correction | class_id | API filter |
+| 19 | 结果筛选 | Correction Result Filter | btn_admin_review_child_result | db_child_profile_correction | all|approved|rejected | API filter |
 
 
 [DYNAMIC_CONTENT_NODE]
 
 | node_name_cn | node_key | object | input | cardinality | action |
 |---|---|---|---|---|---|
-| 待审核行 | admin_review_row | db_upload+db_resource|db_upload+db_case|db_teacher_profile_change|db_training_feedback | target_type, object_id FROM query_result | 0:k | NONE |
+| 待审核行 | admin_review_row | db_upload+db_resource|db_upload+db_case|db_teacher_profile_change|db_training_feedback|db_child_profile_correction | target_type, object_id FROM query_result | 0:k | NONE |
 | 查看 | admin_review_view | same object as row | object_id FROM query_result | 0:k | open detail modal |
 | 通过 | admin_review_approve | same object as row | object_id FROM query_result | 0:k | approve atomically + create db_review_action |
 | 驳回 | admin_review_reject | same object as row | object_id FROM query_result | 0:k | reject atomically + create db_review_action |
@@ -99,11 +104,12 @@ teacher_profile_change_id (教师档案修改ID), 0:k, integer, ui=admin_review.
 teacher_profile_id (教师专业档案ID), 0:k, integer, ui=admin_review.profile.current
 credential_id (教师证书/奖项ID), 0:k, integer, ui=admin_review.profile.credential
 feedback_id (研修反馈ID), 0:k, integer, ui=admin_review.feedback.rows
+child_profile_correction_id (幼儿资料更正ID), 0:k, integer, ui=admin_review.child_profile.rows
 review_action_id (审核动作ID), 0:k, integer, ui=admin_review.action.hidden
 
-rel_count (关系数量) = 11
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_upload, db_resource, db_case, db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_review_action
-rel_map (关系字段) = db_admin_review_home{admin_id}<->db_admin{admin_id}; db_admin_review_home{school_id}<->db_school{school_id}; db_admin_review_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_review_home{upload_id}<->db_upload{upload_id}; db_admin_review_home{resource_id}<->db_resource{resource_id}; db_admin_review_home{case_id}<->db_case{case_id}; db_admin_review_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_review_home{credential_id}<->db_teacher_credential{credential_id}; db_admin_review_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_review_home{feedback_id}<->db_training_feedback{feedback_id}; db_admin_review_home{review_action_id}<->db_review_action{review_action_id}
+rel_count (关系数量) = 12
+rel_db (关联表) = db_admin, db_school, db_admin_school, db_upload, db_resource, db_case, db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_child_profile_correction, db_review_action
+rel_map (关系字段) = db_admin_review_home{admin_id}<->db_admin{admin_id}; db_admin_review_home{school_id}<->db_school{school_id}; db_admin_review_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_review_home{upload_id}<->db_upload{upload_id}; db_admin_review_home{resource_id}<->db_resource{resource_id}; db_admin_review_home{case_id}<->db_case{case_id}; db_admin_review_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_review_home{credential_id}<->db_teacher_credential{credential_id}; db_admin_review_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_review_home{feedback_id}<->db_training_feedback{feedback_id}; db_admin_review_home{child_profile_correction_id}<->db_child_profile_correction{child_profile_correction_id}; db_admin_review_home{review_action_id}<->db_review_action{review_action_id}
 persist (是否持久化) = 0
 object_type (对象类型) = aggregate
 
@@ -192,23 +198,35 @@ training_withdrawn_rule = when training_status=s5, public count=0 and public str
 comment_entity = NONE；独立“评论”标签、计数、对象或回复审核流均禁止
 
 
+[CHILD_PROFILE_CORRECTION_REUSE]
+
+object = db_child_profile_correction，canonical 定义来自 backend DECISIONS.md F13 与 Parent child-profile-spec.md
+list_tabs = pending 只查 r1，submitted_at ASC + id ASC；processed 查 r2|r3，reviewed_at DESC + id DESC；两页都服务端游标分页
+filters = 两页可选 class_id 与 child_name；processed 另有 all|approved|rejected。服务端先套 derived school_id 与全部筛选，再分页
+detail = r1 并排 original_* 与 proposed_*；若 live db_child 已不同于 original，再显示 current canonical 与提示，但不阻止批准
+approval = 一次确认后同交易把 proposed 三栏完整写 db_child、r1→r2、写 reviewed_at 与 t6/d1 review_action；不发送家长通知
+rejection = 一次确认内要求 trim 后 1—500 字理由，同交易 r1→r3、写时间与 t6/d2 action，并通知决定当下全部 caretakers
+concurrency = 任一有效同园管理端账号可处理；第一笔终局交易成功，后到请求 409，不得再写 action／通知
+
+
 审核动作 (Review Action / db_review_action)
 
 review_action_id (审核动作ID), 1:1, integer, ui=admin_review.action.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 admin_id (审核管理员ID), 1:1, integer, ui=context.hidden
-target_type (审核目标类型), 1:1, t1=resource|t2=case|t3=teacher_profile_change|t4=training_feedback, ui=admin_review.action.hidden
+target_type (审核目标类型), 1:1, t1=resource|t2=case|t3=teacher_profile_change|t4=training_feedback|t6=child_profile_correction, ui=admin_review.action.hidden
 resource_id (资源ID), 0:1, integer, ui=context.hidden
 case_id (案例ID), 0:1, integer, ui=context.hidden
 teacher_profile_change_id (档案修改ID), 0:1, integer, ui=context.hidden
 feedback_id (研修反馈ID), 0:1, integer, ui=context.hidden
+child_profile_correction_id (幼儿资料更正ID), 0:1, integer, ui=context.hidden
 decision (审核决定), 1:1, d1=approved(通过)|d2=rejected(驳回), ui=admin_review.action
 decision_reason (审核意见), 0:1, max_len=500, ui=admin_review.action.reason
 created_at (审核时间), 1:1, datetime, ui=admin_review.action.created_at
 
-rel_count (关系数量) = 6
-rel_db (关联表) = db_school, db_admin, db_resource, db_case, db_teacher_profile_change, db_training_feedback
-rel_map (关系字段) = db_review_action{school_id}<->db_school{school_id}; db_review_action{admin_id}<->db_admin{admin_id}; IF target_type=t1, db_review_action{resource_id}<->db_resource{resource_id}; IF target_type=t2, db_review_action{case_id}<->db_case{case_id}; IF target_type=t3, db_review_action{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; IF target_type=t4, db_review_action{feedback_id}<->db_training_feedback{feedback_id}
+rel_count (关系数量) = 7
+rel_db (关联表) = db_school, db_admin, db_resource, db_case, db_teacher_profile_change, db_training_feedback, db_child_profile_correction
+rel_map (关系字段) = db_review_action{school_id}<->db_school{school_id}; db_review_action{admin_id}<->db_admin{admin_id}; IF target_type=t1, db_review_action{resource_id}<->db_resource{resource_id}; IF target_type=t2, db_review_action{case_id}<->db_case{case_id}; IF target_type=t3, db_review_action{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; IF target_type=t4, db_review_action{feedback_id}<->db_training_feedback{feedback_id}; IF target_type=t6, db_review_action{child_profile_correction_id}<->db_child_profile_correction{child_profile_correction_id}
 check (校验) = target_type 对应的一个目标ID必须非空，其余目标ID必须为 NULL
 
 
@@ -236,12 +254,14 @@ required_namespace (命名空间) = nav_admin_*
 
 [JUMP_VALIDATION]
 
-IF target_type NOT_IN(resource,case,teacher_profile_change,training_feedback), return 400
+IF target_type NOT_IN(resource,case,teacher_profile_change,training_feedback,child_profile_correction), return 400
 IF object_id not returned by current authorized query, return 404
 IF object.school_id != current_school_id, return 403
 IF admin lacks target-specific review permission, return 403
 IF current status != pending, return 409
 IF target_type=training_feedback AND decision=rejected AND decision_reason IS EMPTY, return 422
+IF target_type=child_profile_correction AND decision=rejected AND trim(decision_reason) length NOT_IN 1..500, return 422
+IF target_type=child_profile_correction, any valid admin login for current_school_id is authorized; do not apply target-specific permission
 IF decision=rejected AND product requires a reason, REQUIRE decision_reason ELSE return 422
 approval/rejection/status update/db_review_action creation MUST be one transaction
 raw admin_id|school_id|teacher_id from client MUST be ignored and re-derived

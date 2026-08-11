@@ -432,8 +432,12 @@
             <button class="tab" data-f="案例">案例</button>
             <button class="tab" data-f="资料">教师资料</button>
             <button class="tab" data-f="反馈">研修反馈</button>
+            <button class="tab" data-f="幼儿资料">幼儿资料</button>
           </div>
           <div class="spacer"></div>
+          <select class="input" id="child-review-scope" hidden><option value="pending">待审核</option><option value="processed">已处理</option></select>
+          <select class="input" id="child-review-class" hidden><option value="all">全部班级</option><option>小一班</option><option>中一班</option><option>大一班</option></select>
+          <select class="input" id="child-review-result" hidden><option value="all">全部结果</option><option value="approved">已批准</option><option value="rejected">已驳回</option></select>
           <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="review-search" placeholder="搜索名称 / 教师"></div>
         </div>
         <div class="card" style="padding: 6px 20px;">
@@ -837,6 +841,14 @@ let FEEDBACKS = [
     text:'建议把线上回放链接的有效期延长到学期末，方便新入职老师补看。', date:'07-03 08:47' },
 ];
 
+/* 家庭提交的幼儿姓名／生日／性别更正。原值与建议值是不可变快照。 */
+let CHILD_CORRECTIONS = [
+  { id:1, child:'林小雨', cls:'中一班', submitted:'2026-08-10 09:12', status:'pending', original:{name:'林小雨',birth:'2021-09-18',gender:'女'}, proposed:{name:'林晓雨',birth:'2021-09-18',gender:'女'}, current:{name:'林小雨',birth:'2021-09-18',gender:'女'} },
+  { id:2, child:'陈小明', cls:'小一班', submitted:'2026-08-11 18:36', status:'pending', original:{name:'陈小明',birth:'2022-03-02',gender:'男'}, proposed:{name:'陈晓明',birth:'2022-03-02',gender:'男'}, current:{name:'陈小明',birth:'2022-03-02',gender:'男'} },
+  { id:3, child:'王子涵', cls:'大一班', submitted:'2026-08-01 10:08', reviewed:'2026-08-02 08:50', status:'approved', reviewer:'园务管理员', original:{name:'王子涵',birth:'2020-11-12',gender:'女'}, proposed:{name:'王梓涵',birth:'2020-11-12',gender:'女'} },
+  { id:4, child:'刘浩然', cls:'中一班', submitted:'2026-07-29 16:20', reviewed:'2026-07-30 09:15', status:'rejected', reviewer:'园务管理员', reason:'请与户口簿姓名核对后重新提交。', original:{name:'刘浩然',birth:'2021-05-06',gender:'男'}, proposed:{name:'刘皓然',birth:'2021-05-06',gender:'男'} },
+];
+
 let LIBRARY = [
   { name:'醒狮从哪里来', type:'案例', cat:'艺', grade:'大班', up:'黄敏华', createdAt:'2026-07-04', views:326, status:'已发布', rec:true },
   { name:'龙舟竞渡', type:'案例', cat:'行', grade:'中班', up:'王晓芸', createdAt:'2026-06-28', views:298, status:'已发布', rec:true },
@@ -923,7 +935,7 @@ const typeBadge = t => `<span class="badge ${t==='资源'?'badge-blue':'badge-gr
 /* ================= 导航 ================= */
 const VIEW_META = {
   dashboard: ['数据看板','全园运营数据总览'],
-  review: ['审核中心','资源 · 案例 · 教师资料 · 研修反馈 审核'],
+  review: ['审核中心','资源 · 案例 · 教师资料 · 研修反馈 · 幼儿资料更正'],
   library: ['资源与案例','资源库与案例库内容管理'],
   tasks: ['任务管理','教师待办任务的发布与跟踪'],
   assessment: ['测评数据','五大领域综合评估进度与结果'],
@@ -945,11 +957,12 @@ document.addEventListener('click', e => {
 
 /* ================= 审核中心 ================= */
 let reviewFilter = '资源';
-const totalPending = () => PENDING.length + PROFILES.length + FEEDBACKS.length;
+const totalPending = () => PENDING.length + PROFILES.length + FEEDBACKS.length + CHILD_CORRECTIONS.filter(item => item.status === 'pending').length;
 const REVIEW_HEADS = {
   内容: '<tr><th>名称</th><th>分类</th><th>上传人</th><th>提交时间</th><th style="text-align:right">操作</th></tr>',
   资料: '<tr><th>教师</th><th>变更内容</th><th>附件</th><th>提交时间</th><th style="text-align:right">操作</th></tr>',
   反馈: '<tr><th>教师</th><th>研修活动</th><th>反馈内容</th><th>提交时间</th><th style="text-align:right">操作</th></tr>',
+  幼儿资料: '<tr><th>幼儿</th><th>班级</th><th>变更摘要</th><th>时间／结果</th><th style="text-align:right">操作</th></tr>',
 };
 function reviewActions(fnDetail, fnOk, fnNo, id) {
   return `<td style="text-align:right; white-space:nowrap">
@@ -960,6 +973,11 @@ function reviewActions(fnDetail, fnOk, fnNo, id) {
 }
 function renderReview() {
   const q = $('#review-search').value.trim();
+  const childMode = reviewFilter === '幼儿资料';
+  $('#child-review-scope').hidden = !childMode;
+  $('#child-review-class').hidden = !childMode;
+  $('#child-review-result').hidden = !childMode || $('#child-review-scope').value !== 'processed';
+  $('#review-search').placeholder = childMode ? '搜索幼儿姓名' : '搜索名称 / 教师';
   let html = '';
   if (reviewFilter === '资源' || reviewFilter === '案例') {
     $('#review-thead').innerHTML = REVIEW_HEADS['内容'];
@@ -983,6 +1001,29 @@ function renderReview() {
         <td class="num">${p.date}</td>
         ${reviewActions('showProfileDetail', 'approveProfile', 'rejectProfile', p.id)}
       </tr>`).join('');
+  } else if (reviewFilter === '幼儿资料') {
+    $('#review-thead').innerHTML = REVIEW_HEADS['幼儿资料'];
+    const scope = $('#child-review-scope').value;
+    const cls = $('#child-review-class').value;
+    const result = $('#child-review-result').value;
+    const rows = CHILD_CORRECTIONS.filter(item =>
+      (scope === 'pending' ? item.status === 'pending' : item.status !== 'pending') &&
+      (cls === 'all' || item.cls === cls) &&
+      (!q || item.child.includes(q)) &&
+      (scope === 'pending' || result === 'all' || item.status === result)
+    ).sort((a,b) => scope === 'pending'
+      ? a.submitted.localeCompare(b.submitted) || a.id - b.id
+      : b.reviewed.localeCompare(a.reviewed) || b.id - a.id);
+    html = rows.map(item => {
+      const changed = ['name','birth','gender'].filter(key => item.original[key] !== item.proposed[key]);
+      const labels = {name:'姓名',birth:'生日',gender:'性别'};
+      const outcome = item.status === 'pending' ? item.submitted : `${item.status === 'approved' ? '已批准' : '已驳回'} · ${item.reviewed}`;
+      return `<tr>
+        <td><div class="t-name">${esc(item.child)}</div></td><td>${esc(item.cls)}</td>
+        <td>${changed.map(key => labels[key]).join('、')}</td><td>${outcome}</td>
+        <td style="text-align:right"><button class="btn btn-sm" onclick="showChildCorrection(${item.id})">查看</button></td>
+      </tr>`;
+    }).join('');
   } else {
     $('#review-thead').innerHTML = REVIEW_HEADS['反馈'];
     const rows = FEEDBACKS.filter(f => !q || f.teacher.includes(q) || f.training.includes(q) || f.text.includes(q));
@@ -1004,8 +1045,9 @@ function updateReviewBadges() {
     案例: PENDING.filter(p => p.type === '案例').length,
     资料: PROFILES.length,
     反馈: FEEDBACKS.length,
+    幼儿资料: CHILD_CORRECTIONS.filter(item => item.status === 'pending').length,
   };
-  const labels = { 资源:'资源', 案例:'案例', 资料:'教师资料', 反馈:'研修反馈' };
+  const labels = { 资源:'资源', 案例:'案例', 资料:'教师资料', 反馈:'研修反馈', 幼儿资料:'幼儿资料' };
   $$('#review-tabs .tab').forEach(t => {
     const f = t.dataset.f;
     t.textContent = counts[f] ? `${labels[f]} ${counts[f]}` : labels[f];
@@ -1021,6 +1063,7 @@ $('#review-tabs').addEventListener('click', e => {
   renderReview();
 });
 $('#review-search').addEventListener('input', renderReview);
+['child-review-scope','child-review-class','child-review-result'].forEach(id => $('#' + id).addEventListener('change', renderReview));
 function findPending(id) { return PENDING.find(p => p.id === id); }
 function approve(id) {
   const p = findPending(id);
@@ -1050,6 +1093,40 @@ function showDetail(id) {
     <button class="btn" onclick="closeModals()">关闭</button>
     <button class="btn btn-danger-ghost" onclick="reject(${p.id})">驳回</button>
     <button class="btn btn-primary" onclick="approve(${p.id})">通过并发布</button>`;
+  openModal('modal-detail');
+}
+
+/* --- 幼儿资料更正审核：同园任一管理端账号可处理，终局动作须确认。 --- */
+function childCorrection(id) { return CHILD_CORRECTIONS.find(item => item.id === id); }
+function approveChildCorrection(id) {
+  const item = childCorrection(id); if (!item || item.status !== 'pending') return;
+  const p = item.proposed;
+  if (!window.confirm(`确认批准并完整覆写正式资料？\n姓名：${p.name}\n生日：${p.birth}\n性别：${p.gender}\n\n确认后不可撤销。`)) return;
+  item.status = 'approved'; item.reviewed = new Date().toISOString().slice(0,16).replace('T',' '); item.reviewer = '当前管理员';
+  closeModals(); renderReview(); renderDashQueue(); toast('已批准，正式幼儿资料已更新');
+}
+function rejectChildCorrection(id) {
+  const item = childCorrection(id); if (!item || item.status !== 'pending') return;
+  const reason = window.prompt('请输入驳回理由（1—500 字）。确认后会通知决定当下的全部监护人。', '');
+  if (reason === null) return;
+  const clean = reason.trim();
+  if (!clean || clean.length > 500) { toast('驳回理由须为 1—500 字'); return; }
+  item.status = 'rejected'; item.reason = clean; item.reviewed = new Date().toISOString().slice(0,16).replace('T',' '); item.reviewer = '当前管理员';
+  closeModals(); renderReview(); renderDashQueue(); toast('已驳回，并通知当前全部监护人');
+}
+function showChildCorrection(id) {
+  const item = childCorrection(id); if (!item) return;
+  const current = item.current || item.proposed;
+  const canonicalChanged = item.current && ['name','birth','gender'].some(key => item.original[key] !== item.current[key]);
+  const row = (label, values) => `<dt>${label}</dt><dd>姓名：${esc(values.name)}　生日：${values.birth}　性别：${values.gender}</dd>`;
+  $('#detail-title').textContent = `${item.child} · 资料更正`;
+  $('#detail-sub').textContent = `${item.cls} · ${item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已批准' : '已驳回'}`;
+  $('#detail-kv').innerHTML = row('提交时原值', item.original) + row('家长建议值', item.proposed)
+    + (canonicalChanged ? row('当前系统值', current) + '<dt>提示</dt><dd>正式资料在提交后发生过变化；批准仍会完整采用家长建议值。</dd>' : '')
+    + (item.status !== 'pending' ? `<dt>审核结果</dt><dd>${item.status === 'approved' ? '批准' : '驳回'} · ${esc(item.reviewer)} · ${item.reviewed}${item.reason ? '<br>理由：' + esc(item.reason) : ''}</dd>` : '');
+  $('#detail-actions').innerHTML = item.status === 'pending'
+    ? `<button class="btn" onclick="closeModals()">关闭</button><button class="btn btn-danger-ghost" onclick="rejectChildCorrection(${id})">驳回</button><button class="btn btn-primary" onclick="approveChildCorrection(${id})">批准并写入</button>`
+    : '<button class="btn" onclick="closeModals()">关闭</button>';
   openModal('modal-detail');
 }
 
