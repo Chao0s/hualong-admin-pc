@@ -2,13 +2,13 @@ ADMIN_GROWTH_BOOK_SETTING_BACKEND_OBJECT_SPEC
 
 scope (范围) = index.html#growthbook
 source_page (参考页面) = index.html
-static_node_count (固定按钮节点数) = 29
+static_node_count (固定按钮节点数) = 28
 dynamic_template_card_count (动态模板卡片数) = 1:k
 dynamic_section_layout_card_count (动态版式卡片数) = 1:k
 dynamic_preset_photo_slot_count (预设两节动态图位数) = 0:k
 dynamic_school_section_row_count (动态园所栏目行数) = 0:k
 dynamic_preview_page_count (动态预览页数) = 0:k
-runtime_clickable_node_count (运行时可点击节点数) = 29:(29+k)
+runtime_clickable_node_count (运行时可点击节点数) = 28:(28+k)
 field_format (字段格式) = field_key (中文字段名), cardinality, type|enum, ui
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
@@ -74,18 +74,17 @@ environment_isolation = demo|test 数据不得复制到 production
 | 15 | 园长寄语 · 中班 | Principal Message K2 Tab | btn_admin_gb_msg_k2 | db_school | NULL | local tab |
 | 16 | 园长寄语 · 大班 | Principal Message K3 Tab | btn_admin_gb_msg_k3 | db_school | NULL | local tab |
 | 17 | 预览整册 | Preview Book | btn_admin_gb_preview | db_admin_growth_book_setting_home | current draft values | open preview modal |
-| 18 | 保存草稿 | Save Draft | btn_admin_gb_save_draft | db_school | validated form + file_id | persist with book_setting_status=d1 |
-| 19 | 发布设置 | Publish Setting | btn_admin_gb_publish | db_school | validated form | set book_setting_status=d2 |
-| 20 | 撤回发布 | Withdraw Setting | btn_admin_gb_withdraw | db_school | NULL | set book_setting_status=d1 |
-| 21 | 园所介绍 · 确认保存 | Commit Intro | btn_admin_gb_commit_intro | db_school | intro textarea | persist school_intro |
-| 22 | 园长寄语 · 确认保存 | Commit Message | btn_admin_gb_commit_msg | db_school | current grade + textarea | persist principal_message[grade] |
-| 23 | ＋ 新增栏目 | Add School Section | btn_admin_gb_sec_add | db_school_book_section | NULL | open section modal |
-| 24 | 栏目照片 · 上传 | Upload Section Photo | btn_admin_gb_sec_upload | db_file | local file, slot index | upload and return file_id |
-| 25 | 栏目 · 保存 | Save Section | btn_admin_gb_sec_save | db_school_book_section | validated form | create/update |
-| 26 | 栏目 · 删除 | Delete Section | btn_admin_gb_sec_delete | db_school_book_section | school_book_section_id | delete and re-anchor children |
-| 27 | 栏目 · 取消 | Cancel Section | btn_admin_gb_sec_cancel | db_school_book_section | NULL | close modal |
-| 28 | 园所介绍照片 · 上传 | Upload Intro Photo | btn_admin_gb_intro_upload | db_file | local file, slot index | upload and return file_id |
-| 29 | 园长寄语照片 · 上传 | Upload Message Photo | btn_admin_gb_msg_upload | db_file | local file, slot index | upload and return file_id |
+| 18 | 保存草稿 | Save Draft | btn_admin_gb_save_draft | db_school | validated form + file_id | 仅 d1 可 persist；d2 后隐藏 |
+| 19 | 发布 | Publish Setting | btn_admin_gb_publish | db_school + db_school_book_section + db_file_ref | validated complete candidate | 唯一一次单事务发布为 d2；之后只读 |
+| 20 | 园所介绍 · 确认 | Commit Intro | btn_admin_gb_commit_intro | db_school | intro textarea | 仅 d1 写草稿；d2 后只读 |
+| 21 | 园长寄语 · 确认 | Commit Message | btn_admin_gb_commit_msg | db_school | current grade + textarea | 仅 d1 写草稿；d2 后只读 |
+| 22 | ＋ 新增栏目 | Add School Section | btn_admin_gb_sec_add | db_school_book_section | NULL | open section modal |
+| 23 | 栏目照片 · 上传 | Upload Section Photo | btn_admin_gb_sec_upload | db_file | local file, slot index | upload and return file_id |
+| 24 | 栏目 · 保存 | Save Section | btn_admin_gb_sec_save | db_school_book_section | validated form | create/update |
+| 25 | 栏目 · 删除 | Delete Section | btn_admin_gb_sec_delete | db_school_book_section | school_book_section_id | delete and re-anchor draft children |
+| 26 | 栏目 · 取消 | Cancel Section | btn_admin_gb_sec_cancel | db_school_book_section | NULL | close modal |
+| 27 | 园所介绍照片 · 上传 | Upload Intro Photo | btn_admin_gb_intro_upload | db_file | local file, slot index | upload and return file_id |
+| 28 | 园长寄语照片 · 上传 | Upload Message Photo | btn_admin_gb_msg_upload | db_file | local file, slot index | upload and return file_id |
 
 
 [FORM_FIELD_INDEX]
@@ -111,14 +110,16 @@ environment_isolation = demo|test 数据不得复制到 production
 | 栏目正文 | db_school_book_section.body_text | 草稿 0；版式声明 body=1 时发布必填。版式声明 body=0 时不出该控件 |
 | 栏目照片 | db_school_book_section.file_id | 草稿 0:k；发布须传满 layout_code 声明的槽位数。槽位数不可写 |
 
-commit_rule (确认保存的语意) = 园所介绍与园长寄语各有一个「确认保存」，写入的是草稿（book_setting_status 不变）。右侧预览随输入即时更新，但未点确认前不落库；页面另标「已保存 / ● 未保存」
-autosave_on_tab_switch = 园长寄语切换年级页签时，若当前页签有未保存修改则自动提交并 toast 告知，不静默丢弃
-publish_commits_drafts = 保存草稿与发布设置均先提交全部未保存输入再执行，避免用已过期的值做发布校验
+commit_rule (确认的语意) = book_setting_status=d1 时，园所介绍与园长寄语的「确认」可写入服务器草稿，右侧预览随输入即时更新；d2 后页面全部只读，不再形成本机待发布候选
+autosave_on_tab_switch = 仅 d1 可按草稿规则自动写入并 toast；d2 不调用任何内容写入 API
+publish_commits_drafts = 唯一一次发布使用当前完整候选包做全量校验，并以单一事务从 d1 转 d2；发布成功后永久锁定
 
 placeholder_fill_rule = 后端把以上取值嵌入所选 template 的同名占位符；管理端不产生版面，只产生内容
 cover_title_fallback = title_text 为空时取 db_school.school_name + template 自带的默认后缀，不由客户端拼接
 upload_constraint = logo、封面照片、预设两节照片、栏目照片一律走 db_file 通用上传；本 spec 不新增文件表，也不为美术素材开上传口
-resolution_rule = 成长册只产出电子留档 PDF、不印刷，因此照片按 A4 150dpi（1240 × 1754px）为下限，不要求 300dpi、不要求出血、不要求 CMYK；固定 sRGB。文件体积是实际约束（成品要经 wx.shareFileMessage 发给家长，上限见 W21，未确认）
+temporary_upload_rule (F16) = 仅 d1 接受上传并建立草稿引用；替换／取消只改本草稿引用，物理文件按全局零引用与 render lease 规则清理。d2 后拒绝上传或替换，不存在更新发布暂存分支
+image_pipeline (Q62-j63) = 每档原始 bytes 最多 10MB；服务器实判格式、校正方向、移除 EXIF／定位等 metadata。普通照片按实际 layout 槽位比例裁切，长边最多 2000px，转 MozJPEG q82—85；Logo 可保留透明 PNG
+resolution_rule = 成长册以 App 内／电子 150 DPI renderer 观看为目标，不以家长下载后打印 hardcopy 为设计目标。不要求 300 DPI、出血、CMYK 或整张 A4 的输入分辨率；最低像素只按 1240 × 1754 renderer 中实际槽位尺寸推导，小图不为纸本列印放大。固定 sRGB；文件体积仍是电子分享的实际约束
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -173,6 +174,8 @@ principal_message (园长寄语), 0:1, json {default, k1, k2, k3}, ui=growth_boo
 message_layout_code (园长寄语版式代码), 1:1, string, ui=growth_book_setting.message_layout_select
 message_file_id (园长寄语照片ID), 0:k, integer, ui=growth_book_setting.message_photo_upload
 book_setting_status (成长册设置状态), 1:1, d1=draft(草稿)|d2=published(已发布), ui=growth_book_setting.status
+book_setting_revision (成长册草稿并发版本), 1:1, bigint, server-generated monotonic for d1 writes and first publish, ui=context.hidden
+book_setting_published_at (发布时间), 0:1, datetime, server-generated on the only successful publish, ui=growth_book_setting.published.time
 
 rel_count (关系数量) = 1
 rel_db (关联表) = db_file
@@ -218,16 +221,18 @@ no_grade_section_rule (按年级差异的栏目不由管理端下发 / 2026-08-0
 园所若要给毕业班统一致辞，走 principal_message_rule 的年级变体，不把整个栏目收上来
 配套（教师端连带，不在本 spec 范围）：页版式库应预置若干「可选栏目版式」，教师新增栏目时从库中选而非从空白网格排，以免每个大班各排一遍且品质参差
 
-no_snapshot_rule (不引入模版快照，E3 第 3 点维持不变):
+no_snapshot_rule (不引入模版快照，F16):
 本 spec 不为 db_growth_book_template 或 db_growth_book 增加任何皮肤/设置快照列
 理由一：美术与版面仍在 repo，只随发版变，不存在运行时漂移
-理由二：管理端改的是内容，已生成的册子是 db_growth_book.generated_file_id 指向的成品文件，不受后续改动影响
-理由三：尚未生成的册子取最新内容是预期行为，与其余内容对象一致
+理由二：园所内容仅首次 d2 发布一次，之后永久唯读；既有 g2 与新册读取同一份 canonical
+理由三：无需用逐册快照弥补运行时覆盖，也不引入设置版本表
+published_only_addendum (F16) = 成长册只读取唯一合法 d2。d1 草稿不进入教师预览、生成、家长查看或重导；d2 后不得撤回、更新发布、删除栏目或替换附件
 
 publish_gate_rule (发布即分发 / 2026-08-03 前端评审):
-book_setting_status=d1 时教师端取不到模板，全园 can_generate=0；d2 才分发
+book_setting_status=d1 时教师端取不到模板，全园 can_generate=0；d2 才分发，且 d2 永久锁定
 这是「管理端统一配置公共内容 → 分发给各班教师个性化填充」在数据层的落点
-撤回发布只停止分发，不删除任何教师端数据 —— 与 W16 撤回素材征集的「删除」语意不同，不得混用同一套清理逻辑
+首次发布必须在单一事务内写入 db_school 成长册字段、全部 db_school_book_section 及其文件引用；任一校验或写入失败都保持 d1
+d2 后永久禁止撤回或普通业务修改，不以是否已有 g2 作为截止点
 
 can_generate_extension (对 05 home-school-spec.md can_generate_rule 的补充):
 班级级前置条件增加一条：db_school.book_setting_status=d2
@@ -272,8 +277,17 @@ school_section_anchor_rule (锚点层级):
 园所栏目的 anchor_after 取值 = 'cover' | 预设 section_key | 另一个园所栏目的 school_book_section_id；**不得锚到班级级栏目**（园所不知道各班有什么）
 反向成立：班级级栏目可以锚到园所栏目 —— 园所栏目对全园可见。规则是**下层可锚上层，上层不可锚下层**
 成环挡在选项层（排除自己与所有递归锚定到自己的栏目），**服务端必须重做一次校验**，前端 UI 不是完整性边界
-删除时不留孤儿：锚在被删栏目之后的栏目改锚到它原本的锚点
+删除 d1 栏目时不留孤儿：只把同一 d1 草稿内锚在被删栏目之后的园所栏目改锚到最近仍存在的上游锚点
+d1 尚未分发，班级栏目与 g2 不得引用它；d2 后栏目不可删除，故不递归修改已冻结班级模板
 渲染端多轮扫描落位，仍解不开的（数据层的环或悬空锚点）一律落到册尾，不得让栏目消失
+
+publish_concurrency_rule (F16) = 页面读取 d1 时返回 db_school.book_setting_revision；草稿写入与首次发布带该值做 CAS 并在成功后 revision+1。陈旧请求 409，保留本机候选供对照并要求重载，不自动合并、不 LWW；若另一管理员已先发布为 d2，候选作废并切换只读
+publish_idempotency_rule (F16) = 唯一一次发布必须带幂等键；同键重放返回原结果，不重复写入、revision+1 或发布时间。不同键并发时只有第一个 d1→d2 成功，后来者 409
+schoolwide_impact_rule (F16) = 只有 d1 草稿可删除栏目；影响只统计同一 d1 内直接／递归锚点并作最小修复。d2 后删除拒绝，不扫描班级模板、幼儿或既有 g2，不需要全园 impact fingerprint
+content_safety_rule (F16) = 唯一一次发布前，管理员必须完整预览园所介绍、园长寄语、封面、Logo、园所栏目文字与全部图片，明确点击发布即完成当次人工把关。不调微信 API，不建另一 admin 复核、待审状态、queue 或 review action
+full_preview_rule (Q62-j69) = 同一 candidate hash 下必须逐页预览 default／k1／k2／k3 全部适用版本；最终确认显示文字／图片／栏目总数。只校验本次明确确认与当前 candidate 一致，不建审核证据、操作或版本历史
+low_pixel_rule (Q62-j70) = 依 1240 × 1754 renderer 的实际槽位计算建议像素；不足只显示清晰度提示，不阻挡发布、不自动插值放大。10MB、裁切、metadata 清理、长边上限与 JPEG／PNG 规则继续执行
+publish_time_rule (F16) = 唯一一次发布成功事务写 db_school.book_setting_published_at=current business time，UI 固定称「发布时间」；校验失败、409、草稿上传与本机候选变化不改。不建发布历史，actor 只进既有 B2 系统日志且不得记录内容
 
 preset_section_completeness_rule (预设两节的齐备判定):
 与园所栏目同一套判定，作用于发布这一步，不挡保存草稿
@@ -309,11 +323,13 @@ db_school ADD logo_file_id(0:1, integer) —— 本 spec 新增
 db_school ADD book_template_code(0:1, string) —— 本 spec 新增
 db_school ADD principal_message(0:1, json {default,k1,k2,k3}) —— 本 spec 新增
 db_school ADD book_setting_status(1:1, d1=draft|d2=published, default d1) —— 本 spec 新增
+db_school ADD book_setting_revision(1:1, bigint, default 0, server-generated monotonic) —— F16 d1 草稿／首次发布 CAS
+db_school ADD book_setting_published_at(0:1, datetime, nullable, server-generated on successful publish) —— F16 唯一发布时间
 db_school ADD intro_layout_code(1:1, string, default photo) —— 本 spec 新增
 db_school ADD intro_file_id(0:k, integer) —— 本 spec 新增
 db_school ADD message_layout_code(1:1, string, default photo) —— 本 spec 新增
 db_school ADD message_file_id(0:k, integer) —— 本 spec 新增
-db_school_column_growth_note (登记不改判) = 本 spec 累计为 db_school 增 10 列，其中 8 列是成长册专属。DDL 落地时可考虑收进一个 JSON 列或独立的 db_school_book_setting 表，避免身份表被单一功能撑大。**管理端不自行改判**，因为 W19 与 B12 已经把 book_cover 与 school_intro 定为 db_school 的直接列，改动会推翻两条已定决议
+db_school_column_growth_note (登记不改判) = 本 spec 累计为 db_school 增 11 列，其中 9 列是成长册专属。DDL 落地时可考虑收进一个 JSON 列或独立的 db_school_book_setting 表，避免身份表被单一功能撑大。**管理端不自行改判**，因为 W19 与 B12 已经把 book_cover 与 school_intro 定为 db_school 的直接列，改动会推翻两条已定决议
 preset_section_file_note (0:k 的落列) = intro_file_id 与 message_file_id 的 0:k 走 db_file_ref（owner_object=db_school + usage_key）还是本表多列，未定；与 db_school_book_section.file_id 应取同一种做法
 extension_rule = extend the canonical db_school only; app-prefixed school/setting copies are FORBIDDEN
 preset_section_rule = 不新增预设栏目。园长寄语作为封面/扉页 template 的占位符，与 logo、园所名称、简介同层；预设 6 项的固定顺序（E3-1）不动
@@ -348,7 +364,15 @@ IF 写入任一 db_school 本节字段 AND role!=admin, return 403
 IF admin lacks growth_book.setting.write, return 403
 IF 请求发布 AND book_template_code 为空 OR school_intro 为空, return 422
 IF 请求发布 AND 任一 db_school_book_section 的声明照片槽位未传满或声明的 body_text 为空, return 422 并回传该 section_id 与缺失项
-IF 撤回发布 AND book_setting_status!=d2, return 409
+IF 撤回发布, return 409；d2 永久锁定
+IF 请求保存服务端草稿 AND book_setting_status!=d1, return 409
+IF 请求发布的 book_setting_revision != db_school.book_setting_revision, return 409 AND keep local candidate; no partial write
+IF 请求发布幂等键已成功处理, return original result; MUST NOT write or increment revision again
+IF revision 冲突 AND current status=d1, return current draft metadata AND preserve local candidate for manual comparison
+IF revision 冲突 AND current status=d2, return 409 AND discard publish candidate; page becomes readonly
+IF 请求发布前未完成本次全内容预览与明确确认, return 422
+IF candidate hash 未逐页完成 default|k1|k2|k3 全部适用版本预览, return 422
+IF 删除园所栏目 AND book_setting_status!=d1, return 409
 IF principal_message 出现 default|k1|k2|k3 以外的键, return 400
 IF layout_code NOT_IN layout manifest 的栏目版式清单, return 400
 IF intro_layout_code|message_layout_code NOT_IN layout manifest 中声明 body=1 的版式, return 400
@@ -360,7 +384,8 @@ IF db_school_book_section.school_id != current_school_id, return 403
 IF anchor_after 指向班级级 db_growth_book_section, return 400
 IF anchor_after 成环（含递归）, return 409；服务端必须独立校验，不得依赖前端选项过滤
 IF 删除园所栏目, 锚在其后的栏目 MUST 在同一事务内改锚到被删栏目原本的 anchor_after
+IF 删除园所栏目, 直接或递归锚向它的同一 d1 草稿园所栏目 MUST 在同一事务改到最近存活上游锚点
 IF 教师端请求写入 db_school_book_section, return 403
 IF 上传照片数超过 layout_code 声明的槽位数, return 422
 current_school_id MUST be backend-derived; client school_id is ignored
-保存与文件引用 MUST be transactional；发布前不得留下指向未授权 file_id 的 book_cover
+首次发布与全部文件引用 MUST be transactional；发布事务须重验每个 d1 file 的 uploader admin／current school 授权，不得留下未授权 file_id

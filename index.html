@@ -582,7 +582,7 @@
           <span class="field-hint" id="gb-status-hint" style="margin-top:0"></span>
           <div class="spacer"></div>
           <button class="btn" onclick="openGbPreview()">预览整册</button>
-          <button class="btn" onclick="saveGbDraft()">保存草稿</button>
+          <button class="btn" id="gb-save-draft" onclick="saveGbDraft()">保存草稿</button>
           <button class="btn btn-primary" id="gb-publish-btn" onclick="toggleGbPublish()">发布设置</button>
         </div>
 
@@ -1656,12 +1656,12 @@ function renderGbTemplates() {
     </button>`).join('');
 }
 function selectGbTpl(code) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换模板'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.template = code; renderGrowthBook();
   toast(`已选用模板「${gbTpl().name}」`);
 }
 function fakeGbUpload(kind) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换素材'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   if (kind === 'logo') GB.logo = '园徽-2026.png'; else GB.cover = '园所全景-2026春.jpg';
   renderGrowthBook();
   toast('原型演示：素材上传待接入（正式版会校验尺寸与透明通道）');
@@ -1692,20 +1692,20 @@ const gbMsgAsSection = txt => ({ layout: GB.msgLayout, name: '园长寄语', hte
   body: txt, photos: GB.msgPhotos, emptyBody: '（未填写 —— 该占位符不渲染）' });
 
 function setGbIntroLayout(code) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能改版式'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.introLayout = code; gbDirty.intro = true; renderGrowthBook();
 }
 function setGbMsgLayout(code) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能改版式'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.msgLayout = code; gbDirty.msg = true; renderGrowthBook();
 }
 function fakeGbIntroUpload(i) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换素材'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.introPhotos[i] = `园所介绍-${i + 1}.jpg`; renderGrowthBook();
   toast('原型演示：素材上传待接入');
 }
 function fakeGbMsgUpload(i) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能更换素材'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.msgPhotos[i] = `园长寄语-${i + 1}.jpg`; renderGrowthBook();
   toast('原型演示：素材上传待接入');
 }
@@ -1731,12 +1731,12 @@ function renderGbDirty() {
   $('#gb-msg-state').innerHTML = gbDirty.msg ? '<span class="dirty">● 未保存</span>' : '已保存';
 }
 function commitGbIntro() {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能修改'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.intro = $('#gb-intro').value; gbDirty.intro = false; renderGbDirty();
   toast('园所介绍已保存到草稿');
 }
 function commitGbMsg() {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能修改'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.msg[gbMsgTab] = $('#gb-msg').value; gbDirty.msg = false; renderGbDirty();
   toast(`园长寄语（${GB_GRADES[gbMsgTab]}）已保存到草稿`);
 }
@@ -1796,11 +1796,13 @@ function renderGbStatus() {
   b.className = 'badge ' + (pub ? 'badge-teal' : 'badge-amber');
   b.textContent = pub ? '已发布' : '草稿';
   $('#gb-status-hint').textContent = pub
-    ? '各班教师已收到模板，可以开始填充班级内容'
+    ? '各班教师已收到模板；园所内容已锁定，不可撤回或修改'
     : '尚未发布 —— 教师端取不到模板，全园成长册均不可生成';
   const btn = $('#gb-publish-btn');
-  btn.textContent = pub ? '撤回发布' : '发布设置';
-  btn.className = pub ? 'btn btn-danger-ghost' : 'btn btn-primary';
+  btn.textContent = pub ? '已发布（已锁定）' : '发布设置';
+  btn.className = 'btn btn-primary';
+  btn.disabled = pub;
+  $('#gb-save-draft').disabled = pub;
 }
 
 $('#gb-msg-tabs').addEventListener('click', e => {
@@ -1824,13 +1826,12 @@ $('#gb-msg').addEventListener('input', e => {
 $('#gb-cover-title').addEventListener('input', e => { GB.coverTitle = e.target.value; renderGbIntroPreview(); });
 
 function saveGbDraft() {
-  if (GB.status === 'published') { toast('已发布的设置不能直接改，请先撤回发布'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   gbCommitAll(); renderGrowthBook(); toast('草稿已保存 —— 教师端暂时看不到改动');
 }
 function toggleGbPublish() {
   if (GB.status === 'published') {
-    GB.status = 'draft'; renderGrowthBook();
-    toast('已撤回 —— 教师端暂时取不到模板；各班已填的内容不受影响，不会被删除');
+    toast('已发布，内容永久只读');
     return;
   }
   gbCommitAll();
@@ -1890,7 +1891,7 @@ function renderGbSecForm() {
   renderGbSecPreview();
 }
 function openGbSecModal(id) {
-  if (GB.status === 'published') { toast('已发布，需先撤回发布才能改栏目'); return; }
+  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   gbSecEditing = id;
   const src = id ? GB.sections.find(s => s.id === id) : null;
   gbSecDraft = src ? JSON.parse(JSON.stringify(src))

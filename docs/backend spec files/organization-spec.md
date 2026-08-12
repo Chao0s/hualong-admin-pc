@@ -194,4 +194,6 @@ IF write/reset permission missing, return 403
 IF class selector belongs to another school, return 403
 IF parent contact is unstructured/invalid or relationship_type missing, return 422
 create/update entity and related db_teacher_class|db_parent_child rows MUST be transactional
+child_transfer_override (B9/F15/Q62-j18—j46) = 学期中修改 db_child.class_id 不是普通 update。new_class_id=current class 在影响预览前 422。预览只回待删除草稿／终局／active batch、改写 g1／保留 g2 数量；二次确认后正式交易重算，任一数量漂移 409 并要求再确认。真实成功 transition 同交易清理未受旧 g2 保护素材、改班、写 audit，并向当下 caretakers 各发一笔合并 n5；相同 idempotency key 重放返回原成功且不重复，往返转班每次真实 transition 各通知
+child_transfer_error_ui = 所有失败明示「未发生任何变更」：数量漂移 409 原框更新数量；g0 409 保留目标班并提示生成结束后重试；同班 422 刷新／禁选；scope/object 404 返回名册；5xx 保留表单。失败不得建 n5／audit 或部分清理
 password reset MUST issue a one-time reset channel; hardcoded/default password response is FORBIDDEN

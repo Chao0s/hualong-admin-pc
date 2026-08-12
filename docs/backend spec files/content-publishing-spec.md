@@ -127,7 +127,7 @@ production_publish_rule = one modal switches target-specific controls when categ
 |---|---|---|---|---|---|
 | 内容行 | admin_content_row | mapped canonical content object | content_type, object_id FROM query_result | 0:k | NONE |
 | 预览 | admin_content_preview | mapped object + db_file | object_id FROM query_result | 0:k | authorized preview |
-| 编辑研修 | admin_content_training_edit | db_training + db_file_ref | training_id FROM current training row | 0:k | NOW<start_at open edit modal |
+| 查看研修 | admin_content_training_view | db_training + db_file_ref | training_id FROM current training row | 0:k | s1/s5 readonly detail；only s0 opens draft editor |
 | 参与管理 | admin_content_training_participation | db_training_participation + db_teacher | training_id FROM current training row | 0:k | open training-specific drawer/detail layer |
 | 下线 | admin_content_withdraw | mapped canonical object | object_id FROM query_result | 0:k | set canonical withdrawn status |
 
@@ -195,8 +195,8 @@ training_withdrawn_terminal = s5 cannot return to s1 and cannot be edited；a ne
 training_admin_participation = start_at<=NOW<effective_end_at only, authorized admin may add a new s1 row, restore an existing s2 row to s1, or cancel s1 to s2; every action writes B2 generic operation log and creates one n5 notification for the affected teacher; unchanged creates neither notification nor duplicate row; NOW>=effective_end_at is frozen
 training_participation_ui_surface = current Content Publishing > Training row action “参与管理” opens a training-specific drawer/detail layer；no new top-level page and no placement in teacher directory
 training_participation_permission = OPEN next Q58 frontier；不得在未拍板前静默复用 content.training.write 或自行新增权限键
-training_reschedule = training_status=s1 AND NOW<current start_at only；new start_at MUST be >NOW and optional end_at MUST be >=new start_at；preserve every participation row；for each current s1 registered teacher create n5 notification with new time and local-calendar delete/re-add warning；NOW>=current start_at rejects all time edits
-training_published_edit = training_status=s1 AND NOW<current start_at only；title, content, location, meeting pair, speaker and db_file_ref materials may change while preserving participation；title/location/meeting/speaker change notifies current registered teachers；content-only or material-only change does not notify；NOW>=start_at freezes every listed field and file relation
+training_reschedule = F16 FORBIDS after s0→s1；start_at/end_at are draft-only. Schedule change requires withdrawing the old activity and creating a new s0; participation rows stay on the old activity and are not migrated
+training_published_edit = F16 FORBIDS all s1 content/file writes regardless of NOW；title, content, location, meeting pair, speaker and materials are immutable. Only the existing withdrawal flow remains
 
 
 [PARTY_METRIC_RULE]
