@@ -530,7 +530,7 @@
         <div class="grid grid-4" id="hs-kpi-row"></div>
         <div class="card mt" style="padding: 6px 20px;">
           <table class="tbl">
-            <thead><tr><th>班级</th><th style="width:160px">在园时光覆盖</th><th style="width:160px">亲子任务提交</th><th style="width:160px">成长档案完成</th><th style="width:160px">成长册生成</th><th style="text-align:right">操作</th></tr></thead>
+            <thead><tr><th>班级</th><th style="width:160px">在园时光覆盖</th><th style="width:160px">亲子任务提交</th><th style="width:160px">成长档案完成</th><th style="width:160px">成长册定稿</th><th style="text-align:right">操作</th></tr></thead>
             <tbody id="hs-tbody"></tbody>
           </table>
         </div>
@@ -639,7 +639,7 @@
               <div class="form-row"><label>版式</label><div class="lay-grid" id="gb-intro-layouts"></div></div>
               <textarea class="input" id="gb-intro" maxlength="1000" style="width:100%; min-height:150px" placeholder="办园理念 / 园所沿革 / 特色课程…"></textarea>
               <div id="gb-intro-photos" class="mt"></div>
-              <div class="field-hint">正文发布前必填 —— 为空时全园每本成长册都不可生成。右侧预览随输入即时更新，「确认保存」才写入草稿。</div>
+              <div class="field-hint">正文发布前必填 —— 为空时全园每本成长册都不可定稿。右侧预览随输入即时更新，「确认保存」才写入草稿。</div>
             </div>
             <div>
               <div class="book-page" id="gb-intro-preview"></div>
@@ -869,7 +869,7 @@ const SCHOOL_TERMS = [
 let TASKS = [
   { title:'提交本学期综合评估个人报告', to:'全体教师', ddl:'2026-07-15', acc:52, done:31, total:52, status:'进行中' },
   { title:'龙舟主题月活动方案上报', to:'中班组', ddl:'2026-07-10', acc:12, done:9, total:12, status:'进行中' },
-  { title:'成长册内容勾选与生成', to:'大班组', ddl:'2026-07-18', acc:10, done:4, total:12, status:'进行中' },
+  { title:'成长册内容勾选与定稿', to:'大班组', ddl:'2026-07-18', acc:10, done:4, total:12, status:'进行中' },
   { title:'上传醒狮主题案例（含 Word 详案）', to:'教研培训部', ddl:'2026-06-30', acc:6, done:6, total:6, status:'已完成' },
   { title:'六一活动照片归档至在园时光', to:'全体教师', ddl:'2026-06-20', acc:52, done:52, total:52, status:'已完成' },
 ];
@@ -1378,7 +1378,7 @@ function renderHomeschool() {
     ['在园时光覆盖率', avg('moments'), '本周照片覆盖幼儿比例'],
     ['亲子任务提交率', avg('taskRate'), '最近一期任务家长提交比例'],
     ['成长档案完成率', avg('archive'), '家长 + 教师测评完成情况'],
-    ['成长册生成率', avg('book'), '本学期成长册已生成比例'],
+    ['成长册定稿率', avg('book'), '本学期成长册已定稿开放比例'],
   ];
   $('#hs-kpi-row').innerHTML = KPIS.map(([label, v, sub]) => `
     <div class="card kpi">
@@ -1797,7 +1797,7 @@ function renderGbStatus() {
   b.textContent = pub ? '已发布' : '草稿';
   $('#gb-status-hint').textContent = pub
     ? '各班教师已收到模板；园所内容已锁定，不可撤回或修改'
-    : '尚未发布 —— 教师端取不到模板，全园成长册均不可生成';
+    : '尚未发布 —— 教师端取不到模板，全园成长册均不可定稿';
   const btn = $('#gb-publish-btn');
   btn.textContent = pub ? '已发布（已锁定）' : '发布设置';
   btn.className = 'btn btn-primary';
@@ -1835,7 +1835,7 @@ function toggleGbPublish() {
     return;
   }
   gbCommitAll();
-  if (!GB.intro.trim()) { renderGrowthBook(); toast('园所介绍为空，无法发布（全园成长册都会不可生成）'); return; }
+  if (!GB.intro.trim()) { renderGrowthBook(); toast('园所介绍为空，无法发布（全园成长册都会不可定稿）'); return; }
   // 预设两节与园所栏目走同一套齐备判定：版式声明了图位就得传满
   const introMiss = gbSecMissing({ layout: GB.introLayout, body: GB.intro, photos: GB.introPhotos });
   if (introMiss.length) { renderGrowthBook(); toast(`园所介绍还缺 ${introMiss.join('、')}，补齐后才能发布`); return; }

@@ -13,6 +13,7 @@ field_format (字段格式) = field_key (中文字段名), cardinality, type|enu
 id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
 list_rule (列表规则) = 0:k | 1:k
+f17_current_override (现行成长册契约 / 2026-08-12) = DECISIONS.md F17 已取消成长册 PDF／图片档、生成／重导、下载分享、generated file 与 render lease；教师端只做 b1 准备与 b2 App 内定稿开放，b2 永久锁定。本文后方残留的 g2、生成或电子分享措辞只作历史背景，均按本条改读
 
 
 [SHARED_OBJECT_RULE]
@@ -117,9 +118,9 @@ publish_commits_drafts = 唯一一次发布使用当前完整候选包做全量�
 placeholder_fill_rule = 后端把以上取值嵌入所选 template 的同名占位符；管理端不产生版面，只产生内容
 cover_title_fallback = title_text 为空时取 db_school.school_name + template 自带的默认后缀，不由客户端拼接
 upload_constraint = logo、封面照片、预设两节照片、栏目照片一律走 db_file 通用上传；本 spec 不新增文件表，也不为美术素材开上传口
-temporary_upload_rule (F16) = 仅 d1 接受上传并建立草稿引用；替换／取消只改本草稿引用，物理文件按全局零引用与 render lease 规则清理。d2 后拒绝上传或替换，不存在更新发布暂存分支
+temporary_upload_rule (F16 + F17) = 仅 d1 接受上传并建立草稿引用；替换／取消只改本草稿引用，物理文件按全局零引用规则清理。d2 后拒绝上传或替换，不存在更新发布暂存分支；成长册不再建立 render lease
 image_pipeline (Q62-j63) = 每档原始 bytes 最多 10MB；服务器实判格式、校正方向、移除 EXIF／定位等 metadata。普通照片按实际 layout 槽位比例裁切，长边最多 2000px，转 MozJPEG q82—85；Logo 可保留透明 PNG
-resolution_rule = 成长册以 App 内／电子 150 DPI renderer 观看为目标，不以家长下载后打印 hardcopy 为设计目标。不要求 300 DPI、出血、CMYK 或整张 A4 的输入分辨率；最低像素只按 1240 × 1754 renderer 中实际槽位尺寸推导，小图不为纸本列印放大。固定 sRGB；文件体积仍是电子分享的实际约束
+resolution_rule = 成长册只以 App 内 renderer 观看为目标，不提供家长下载、文件分享或 hardcopy。不要求 300 DPI、出血、CMYK 或整张 A4 的输入分辨率；最低像素按实际槽位尺寸推导，小图不为纸本列印放大。固定 sRGB
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -221,20 +222,20 @@ no_grade_section_rule (按年级差异的栏目不由管理端下发 / 2026-08-0
 园所若要给毕业班统一致辞，走 principal_message_rule 的年级变体，不把整个栏目收上来
 配套（教师端连带，不在本 spec 范围）：页版式库应预置若干「可选栏目版式」，教师新增栏目时从库中选而非从空白网格排，以免每个大班各排一遍且品质参差
 
-no_snapshot_rule (不引入模版快照，F16):
+no_snapshot_rule (不引入模版快照，F16 + F17):
 本 spec 不为 db_growth_book_template 或 db_growth_book 增加任何皮肤/设置快照列
 理由一：美术与版面仍在 repo，只随发版变，不存在运行时漂移
-理由二：园所内容仅首次 d2 发布一次，之后永久唯读；既有 g2 与新册读取同一份 canonical
+理由二：园所内容仅首次 d2 发布一次，之后永久唯读；既有 b2 与新册读取同一份 canonical
 理由三：无需用逐册快照弥补运行时覆盖，也不引入设置版本表
-published_only_addendum (F16) = 成长册只读取唯一合法 d2。d1 草稿不进入教师预览、生成、家长查看或重导；d2 后不得撤回、更新发布、删除栏目或替换附件
+published_only_addendum (F16 + F17) = 成长册只读取唯一合法 d2。d1 草稿不进入教师预览、定稿或家长查看；d2 后不得撤回、更新发布、删除栏目或替换附件
 
 publish_gate_rule (发布即分发 / 2026-08-03 前端评审):
-book_setting_status=d1 时教师端取不到模板，全园 can_generate=0；d2 才分发，且 d2 永久锁定
+book_setting_status=d1 时教师端取不到模板，全园 can_finalize=0；d2 才分发，且 d2 永久锁定
 这是「管理端统一配置公共内容 → 分发给各班教师个性化填充」在数据层的落点
 首次发布必须在单一事务内写入 db_school 成长册字段、全部 db_school_book_section 及其文件引用；任一校验或写入失败都保持 d1
-d2 后永久禁止撤回或普通业务修改，不以是否已有 g2 作为截止点
+d2 后永久禁止撤回或普通业务修改，不以是否已有 b2 作为截止点
 
-can_generate_extension (对 05 home-school-spec.md can_generate_rule 的补充):
+can_finalize_extension (对 Teacher 05 home-school-spec.md can_finalize_rule 的补充):
 班级级前置条件增加一条：db_school.book_setting_status=d2
 原有的「intro 取 db_school.school_intro 非空」由本 spec 的发布必填保证，不重复校验
 
@@ -278,7 +279,7 @@ school_section_anchor_rule (锚点层级):
 反向成立：班级级栏目可以锚到园所栏目 —— 园所栏目对全园可见。规则是**下层可锚上层，上层不可锚下层**
 成环挡在选项层（排除自己与所有递归锚定到自己的栏目），**服务端必须重做一次校验**，前端 UI 不是完整性边界
 删除 d1 栏目时不留孤儿：只把同一 d1 草稿内锚在被删栏目之后的园所栏目改锚到最近仍存在的上游锚点
-d1 尚未分发，班级栏目与 g2 不得引用它；d2 后栏目不可删除，故不递归修改已冻结班级模板
+d1 尚未分发，班级栏目与 b2 不得引用它；d2 后栏目不可删除，故不递归修改已冻结班级模板
 渲染端多轮扫描落位，仍解不开的（数据层的环或悬空锚点）一律落到册尾，不得让栏目消失
 
 publish_concurrency_rule (F16) = 页面读取 d1 时返回 db_school.book_setting_revision；草稿写入与首次发布带该值做 CAS 并在成功后 revision+1。陈旧请求 409，保留本机候选供对照并要求重载，不自动合并、不 LWW；若另一管理员已先发布为 d2，候选作废并切换只读
