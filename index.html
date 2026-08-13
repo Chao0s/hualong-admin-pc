@@ -262,6 +262,23 @@
   .tpl-thumb { display: block; width: 100%; height: auto; border-radius: 5px; border: 1px solid var(--border); }
   .tpl-name { font-size: 13px; font-weight: 650; margin-top: 9px; display: flex; align-items: center; gap: 6px; }
   .tpl-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.55; }
+  .gb-season-tabs { margin-top: 16px; }
+  .gb-grade-stack { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
+  .gb-grade-card {
+    display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 18px; align-items: stretch;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px;
+  }
+  .gb-grade-label { display: flex; flex-direction: column; justify-content: center; padding: 6px 4px; }
+  .gb-grade-name { font-size: 19px; font-weight: 750; }
+  .gb-grade-theme { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .gb-template-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .gb-template-option {
+    display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; align-items: center;
+    border: 1.5px solid var(--border); border-radius: 10px; padding: 10px; background: var(--surface);
+  }
+  .gb-template-option.on { border-color: var(--accent); background: var(--accent-light); }
+  .gb-template-option .tpl-name { margin-top: 0; }
+  .gb-template-actions { display: flex; gap: 7px; margin-top: 10px; }
 
   .upload-slot { display: flex; align-items: center; gap: 12px; border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 11px 12px; }
   .upload-thumb {
@@ -309,6 +326,12 @@
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
     .grid-main-side, .grid-2 { grid-template-columns: 1fr; }
     .gb-split { grid-template-columns: 1fr; }
+    .gb-grade-card { grid-template-columns: 92px minmax(0, 1fr); }
+    .gb-template-option { grid-template-columns: 72px minmax(0, 1fr); }
+  }
+  @media (max-width: 820px) {
+    .gb-grade-card { grid-template-columns: 1fr; }
+    .gb-template-pair { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -581,15 +604,18 @@
           <span class="badge" id="gb-status-badge">草稿</span>
           <span class="field-hint" id="gb-status-hint" style="margin-top:0"></span>
           <div class="spacer"></div>
-          <button class="btn" onclick="openGbPreview()">预览整册</button>
           <button class="btn" id="gb-save-draft" onclick="saveGbDraft()">保存草稿</button>
           <button class="btn btn-primary" id="gb-publish-btn" onclick="toggleGbPublish()">发布设置</button>
         </div>
 
         <div class="card">
-          <div class="card-title">选用模板</div>
-          <div class="card-sub">封面与内页的版式、美术边框、底纹由模板决定；园所只填内容，不上传美术素材</div>
-          <div class="tpl-grid" id="gb-tpl-grid"></div>
+          <div class="card-title">年级模板</div>
+          <div class="card-sub">每个季节分别为小、中、大班选择一套模板。选择跨学年沿用，改选只影响之后新建的成长册。</div>
+          <div class="tabs gb-season-tabs" id="gb-season-tabs">
+            <button class="tab on" data-season="spring">春季</button>
+            <button class="tab" data-season="autumn">秋季</button>
+          </div>
+          <div class="gb-grade-stack" id="gb-assignment-grid"></div>
         </div>
 
         <div class="card">
@@ -649,39 +675,23 @@
         </div>
 
         <div class="card mt">
-          <div class="card-title">园长寄语
+          <div class="card-title">本学期寄语
             <span>
-              <span class="char-count" id="gb-msg-count"></span>
-              <span class="char-count" id="gb-msg-state" style="margin-left:10px"></span>
-              <button class="btn btn-sm" style="margin-left:10px" onclick="commitGbMsg()">确认保存</button>
+              <span class="char-count" id="gb-term-message-count"></span>
+              <span class="char-count" id="gb-term-message-state" style="margin-left:10px"></span>
+              <button class="btn btn-sm" id="gb-term-message-save" style="margin-left:10px" onclick="commitGbTermMessage()">确认保存</button>
             </span>
           </div>
-          <div class="card-sub">可按年级写不同版本（大班毕业致辞 / 小班入园欢迎）；教师端按班级年级自动取用</div>
-          <div class="tabs" id="gb-msg-tabs">
-            <button class="tab on" data-f="default">通用</button>
-            <button class="tab" data-f="k1">小班</button>
-            <button class="tab" data-f="k2">中班</button>
-            <button class="tab" data-f="k3">大班</button>
-          </div>
-          <div class="gb-split mt">
-            <div>
-              <div class="form-row"><label>版式<span class="char-count" style="font-weight:400; margin-left:8px">整节一份，不按年级分叉</span></label><div class="lay-grid" id="gb-msg-layouts"></div></div>
-              <textarea class="input" id="gb-msg" maxlength="500" style="width:100%; min-height:110px"></textarea>
-              <div id="gb-msg-photos" class="mt"></div>
-              <div class="field-hint" id="gb-msg-hint"></div>
-            </div>
-            <div>
-              <div class="book-page" id="gb-msg-preview"></div>
-              <div class="book-cap" id="gb-msg-preview-cap">园长寄语页</div>
-            </div>
-          </div>
+          <div class="card-sub">2026 春季学期 · 全园所有成长册共用，显示在五大领域评估之后</div>
+          <textarea class="input" id="gb-term-message" maxlength="500" data-ui="growth_book_setting.term_message" style="width:100%; min-height:120px" placeholder="写给全园孩子的本学期寄语…"></textarea>
+          <div class="field-hint">本学期任一班级锁定编册后永久唯读；这不是园长寄语，园长寄语需要时请作为普通园所栏目新增。</div>
         </div>
 
         <div class="card mt">
           <div class="card-title">园所栏目
             <button class="btn btn-sm btn-primary" onclick="openGbSecModal(null)">＋ 新增栏目</button>
           </div>
-          <div class="card-sub">园所统一增加的栏目，内容由园所填定后直接下发 —— 不向家长征集、不逐班不同、教师端只读</div>
+          <div class="card-sub">园所统一增加的栏目，内容由园所填定后直接下发。需要时可新增“园长寄语”，它不再是固定栏目。</div>
           <div id="gb-sec-list"></div>
         </div>
       </section>
@@ -748,16 +758,10 @@
 
 <div class="modal-mask" id="modal-gb-preview">
   <div class="modal" style="width: 900px">
-    <h3>整册预览</h3>
+    <h3>正本预览</h3>
     <div class="modal-sub" id="gb-preview-sub"></div>
-    <div class="tabs" id="gb-preview-tabs" style="margin-bottom:14px">
-      <button class="tab on" data-f="default">通用</button>
-      <button class="tab" data-f="k1">小班</button>
-      <button class="tab" data-f="k2">中班</button>
-      <button class="tab" data-f="k3">大班</button>
-    </div>
     <div class="grid" style="grid-template-columns: repeat(3, 1fr)" id="gb-preview-pages"></div>
-    <div class="field-hint">按所选模板即时渲染。「在园时光」「亲子活动」「期末评估」「综合评估」「教师寄语」以及各班自行新增的栏目由教师端填充，不在此处显示。</div>
+    <div class="field-hint">预览展示正本的完整页面结构；班级与幼儿内容使用占位内容表示，实际成册时由教师端素材替换。</div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModals()">关闭</button>
     </div>
@@ -770,7 +774,7 @@
     <div class="modal-sub">内容填定后随成长册设置一起下发，全园每本册子内容相同；教师端不可改、不可删</div>
     <div class="gb-split">
       <div>
-        <div class="form-row"><label>栏目名称</label><input class="input" id="gb-sec-name" maxlength="10" placeholder="如：园所大事记"></div>
+        <div class="form-row"><label>栏目名称</label><input class="input" id="gb-sec-name" maxlength="10" placeholder="如：园所大事记、园长寄语"></div>
         <div class="form-row"><label>栏目版式</label><div class="lay-grid" id="gb-sec-layouts"></div></div>
         <div class="form-row"><label>插入位置</label><select class="input" id="gb-sec-anchor"></select></div>
         <div class="form-row"><label>标题文字</label><input class="input" id="gb-sec-htext" maxlength="20" placeholder="留空则用栏目名称"></div>
@@ -942,7 +946,7 @@ const VIEW_META = {
   homeschool: ['家园共育数据','在园时光 · 亲子任务 · 成长档案 · 成长册'],
   org: ['组织管理','教师 / 班级 / 幼儿信息维护'],
   content: ['内容发布','党建 · 通知文件 · 教研培训'],
-  growthbook: ['成长册设置','封面 · 园所介绍 · 园长寄语 —— 配置后分发给各班教师'],
+  growthbook: ['成长册设置','年级模板 · 园所素材 · 园所介绍 · 新增栏目'],
 };
 function gotoView(v) {
   $$('.nav-item').forEach(b => b.classList.toggle('on', b.dataset.view === v));
@@ -1526,16 +1530,18 @@ function publishContent() {
 /* ================= 成长册设置 =================
    模板与栏目版式都由开发者提供（后端仓库页版式库），园所只选版式并填占位符。
    见 docs/backend spec files/growth-book-setting-spec.md 的 design_ownership_rule。 */
-const GB_TEMPLATES = [
-  { code:'tpl-shuixiang', name:'水乡 · 青绿', accent:'#189b91',
-    desc:'封面整幅照片压浅色蒙版、标题居中；内页细描双线边框，页眉居中' },
-  { code:'tpl-longzhou', name:'龙舟 · 暖橘', accent:'#e0641f',
-    desc:'封面上下分栏、照片置于圆角相框；内页米白底纹，页眉靠左' },
-];
+const GB_SLOT_THEMES = {
+  'k1-autumn':'我上幼儿园了','k1-spring':'一起发现春天','k2-autumn':'新的本领','k2-spring':'一起划龙舟','k3-autumn':'我是大哥哥大姐姐','k3-spring':'我要毕业了'
+};
+const GB_TEMPLATES = Object.entries(GB_SLOT_THEMES).flatMap(([slot,theme]) => ['A','B'].map(variant => {
+  const [grade,season]=slot.split('-'), warm=variant==='B';
+  return {code:`${grade}-${season}-${variant.toLowerCase()}-v1`,slot,variant,name:`${theme} · ${variant}`,
+    accent:warm?'#e0641f':'#189b91',desc:`${grade.toUpperCase()} · ${season==='spring'?'春季':'秋季'} · ${warm?'暖橘':'青绿'}配色`};
+}));
 const GB_GRADES = { default:'通用', k1:'小班', k2:'中班', k3:'大班' };
-/* 预设 6 项固定顺序（E3-1），管理端只读，仅用于新增栏目的插入位置 */
+/* 正文固定顺序，管理端只读，仅用于新增栏目的插入位置 */
 const GB_PRESET = [['intro','园所介绍'],['time','在园时光'],['task','亲子活动'],
-                   ['term','期末评估'],['comp','综合评估'],['message','教师寄语']];
+                   ['term','教师综合评估'],['comp','五大领域评估'],['message','学期寄语']];
 /* 园所栏目的可选版式：版面归我们，园所只填占位符 —— 与「选用模板」同一心智 */
 const GB_SEC_LAYOUTS = [
   { code:'text',      name:'纯文字',   imgs:0, body:true },
@@ -1545,17 +1551,18 @@ const GB_SEC_LAYOUTS = [
 ];
 const gbLayout = c => GB_SEC_LAYOUTS.find(l => l.code === c) || GB_SEC_LAYOUTS[0];
 
-/* 预设两节（园所介绍 / 园长寄语）与园所栏目共用同一批版式，但只出带正文的三种 ——
-   这两节以文字为主，「整页大图」没有正文位，给了也用不上 */
+/* 园所介绍与园所栏目共用同一批版式；介绍需要正文位。 */
 const gbBodyLayouts = () => GB_SEC_LAYOUTS.filter(l => l.body);
 
 let GB = {
-  template: 'tpl-shuixiang',
+  template: 'k1-spring-a-v1',
+  activeSeason: 'spring',
+  assignments: Object.fromEntries(Object.keys(GB_SLOT_THEMES).map(slot => [slot,{variant:'A'}])),
   logo: '', cover: '', coverTitle: '',
   intro: '化龙第一幼儿园创办于 1998 年，坐落在珠江边的水乡古村旁。我们以「生活即教育」为办园理念，把醒狮、龙舟、香云纱这些身边的岭南文化，做成孩子看得见、摸得着的课程。',
   introLayout: 'photo', introPhotos: [],
-  msg: { default:'', k1:'', k2:'', k3:'' },
-  msgLayout: 'photo', msgPhotos: [],
+  termMessage: '亲爱的孩子们，愿你们把这个春天收获的勇气、好奇与友爱带在身边，继续自在探索、快乐长大。',
+  termMessageLocked: false,
   sections: [
     { id:'s1', name:'园所大事记', layout:'two-photo', anchor:'intro', htext:'我们这一年',
       body:'新的种植园在春天建成，孩子们把第一批秋葵种子埋进土里；秋天的龙舟节，六个班一起把纸龙舟放进了小河。',
@@ -1563,11 +1570,10 @@ let GB = {
   ],
   status: 'draft',
 };
-let gbMsgTab = 'default';
-let gbPreviewGrade = 'default';
-let gbDirty = { intro:false, msg:false };
+let gbPreviewTemplateCode = GB.template;
+let gbDirty = { intro:false, termMessage:false };
 let gbSecEditing = null, gbSecDraft = null;
-const gbTpl = () => GB_TEMPLATES.find(t => t.code === GB.template) || GB_TEMPLATES[0];
+const gbTpl = (code = GB.template) => GB_TEMPLATES.find(t => t.code === code) || GB_TEMPLATES[0];
 
 /* --- 册子顺序：封面 + 预设 6 项 + 园所栏目按 anchor 落位（多轮扫描，同教师端 placeCustoms） --- */
 function gbOutline() {
@@ -1647,19 +1653,41 @@ function gbThumb(t) {
     <text x="42" y="102.5" text-anchor="middle" font-size="5" fill="${a}" opacity=".85">LOGO</text>
   </svg>`;
 }
-function renderGbTemplates() {
-  $('#gb-tpl-grid').innerHTML = GB_TEMPLATES.map(t => `
-    <button class="tpl-card ${t.code === GB.template ? 'on' : ''}" onclick="selectGbTpl('${t.code}')">
-      ${gbThumb(t)}
-      <div class="tpl-name">${esc(t.name)}${t.code === GB.template ? '<span class="badge badge-teal">已选用</span>' : ''}</div>
-      <div class="tpl-desc">${esc(t.desc)}</div>
-    </button>`).join('');
+function renderGbAssignments(){
+  $('#gb-assignment-grid').innerHTML=['k1','k2','k3'].map(grade=>{
+    const slot=`${grade}-${GB.activeSeason}`, theme=GB_SLOT_THEMES[slot], selected=GB.assignments[slot].variant;
+    const options=GB_TEMPLATES.filter(t=>t.slot===slot).map(t=>{
+      const on=t.variant===selected;
+      return `<div class="gb-template-option ${on?'on':''}">
+        ${gbThumb(t)}
+        <div>
+          <div class="tpl-name">模板 ${t.variant}${on?'<span class="badge badge-teal">已选</span>':''}</div>
+          <div class="tpl-desc">${esc(t.desc)}</div>
+          <div class="gb-template-actions">
+            <button class="btn btn-sm ${on?'':'btn-primary'}" onclick="selectGbTpl('${t.code}')" data-ui="growth_book_setting.assignment.template">${on?'已选用':'选择模板'}</button>
+            <button class="btn btn-sm" onclick="openGbPreview('${t.code}')">预览正本</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="gb-grade-card">
+      <div class="gb-grade-label"><div class="gb-grade-name">${GB_GRADES[grade]}</div><div class="gb-grade-theme">${esc(theme)}</div></div>
+      <div class="gb-template-pair">${options}</div>
+    </div>`;
+  }).join('');
 }
 function selectGbTpl(code) {
-  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
-  GB.template = code; renderGrowthBook();
+  const t=GB_TEMPLATES.find(x=>x.code===code);GB.template=code;GB.assignments[t.slot].variant=t.variant;renderGrowthBook();
   toast(`已选用模板「${gbTpl().name}」`);
 }
+$('#gb-season-tabs').addEventListener('click', e => {
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  GB.activeSeason=tab.dataset.season;
+  const slot=`k1-${GB.activeSeason}`, variant=GB.assignments[slot].variant;
+  GB.template=`${slot}-${variant.toLowerCase()}-v1`;
+  $$('#gb-season-tabs .tab').forEach(x=>x.classList.toggle('on',x===tab));
+  renderGrowthBook();
+});
 function fakeGbUpload(kind) {
   if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   if (kind === 'logo') GB.logo = '园徽-2026.png'; else GB.cover = '园所全景-2026春.jpg';
@@ -1667,7 +1695,7 @@ function fakeGbUpload(kind) {
   toast('原型演示：素材上传待接入（正式版会校验尺寸与透明通道）');
 }
 
-/* --- 版式选择器与照片槽位：预设两节和园所栏目共用同一套控件 --- */
+/* --- 版式选择器与照片槽位：园所介绍和园所栏目共用同一套控件 --- */
 function gbLayoutPicker(list, current, onPick) {
   return list.map(l => `
     <button class="lay-card ${l.code === current ? 'on' : ''}" onclick="${onPick}('${l.code}')">
@@ -1685,28 +1713,17 @@ function gbPhotoSlots(photos, n, onUpload) {
       <button class="btn btn-sm" onclick="${onUpload}(${i})">上传</button>
     </div>`).join('');
 }
-/* 把预设两节包装成与园所栏目同形的对象，三处预览走同一个渲染器 */
+/* 把园所介绍包装成与园所栏目同形的对象，预览走同一个渲染器。 */
 const gbIntroAsSection = () => ({ layout: GB.introLayout, name: '园所介绍', htext: '园所介绍',
   body: $('#gb-intro').value, photos: GB.introPhotos, emptyBody: '（园所介绍为空 —— 发布前必填）' });
-const gbMsgAsSection = txt => ({ layout: GB.msgLayout, name: '园长寄语', htext: '园长寄语',
-  body: txt, photos: GB.msgPhotos, emptyBody: '（未填写 —— 该占位符不渲染）' });
 
 function setGbIntroLayout(code) {
   if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.introLayout = code; gbDirty.intro = true; renderGrowthBook();
 }
-function setGbMsgLayout(code) {
-  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
-  GB.msgLayout = code; gbDirty.msg = true; renderGrowthBook();
-}
 function fakeGbIntroUpload(i) {
   if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.introPhotos[i] = `园所介绍-${i + 1}.jpg`; renderGrowthBook();
-  toast('原型演示：素材上传待接入');
-}
-function fakeGbMsgUpload(i) {
-  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
-  GB.msgPhotos[i] = `园长寄语-${i + 1}.jpg`; renderGrowthBook();
   toast('原型演示：素材上传待接入');
 }
 
@@ -1717,33 +1734,25 @@ function renderGbIntroPreview() {
   $('#gb-intro-photos').innerHTML = gbPhotoSlots(GB.introPhotos, gbLayout(GB.introLayout).imgs, 'fakeGbIntroUpload');
   $('#gb-intro-preview').innerHTML = gbFrame(t) + gbSecPage(t, gbIntroAsSection());
 }
-function renderGbMsgPreview() {
-  const t = gbTpl(), g = gbMsgTab, live = $('#gb-msg').value;
-  const shown = live.trim() || (g === 'default' ? '' : GB.msg.default.trim());
-  const fellBack = g !== 'default' && !live.trim() && shown;
-  $('#gb-msg-layouts').innerHTML = gbLayoutPicker(gbBodyLayouts(), GB.msgLayout, 'setGbMsgLayout');
-  $('#gb-msg-photos').innerHTML = gbPhotoSlots(GB.msgPhotos, gbLayout(GB.msgLayout).imgs, 'fakeGbMsgUpload');
-  $('#gb-msg-preview').innerHTML = gbFrame(t) + gbSecPage(t, gbMsgAsSection(shown));
-  $('#gb-msg-preview-cap').textContent = `扉页 · 园长寄语（${GB_GRADES[g]}）${fellBack ? ' 回落通用' : ''}`;
-}
 function renderGbDirty() {
   $('#gb-intro-state').innerHTML = gbDirty.intro ? '<span class="dirty">● 未保存</span>' : '已保存';
-  $('#gb-msg-state').innerHTML = gbDirty.msg ? '<span class="dirty">● 未保存</span>' : '已保存';
+  $('#gb-term-message-state').innerHTML = gbDirty.termMessage ? '<span class="dirty">● 未保存</span>' : (GB.termMessageLocked ? '编册已锁定' : '已保存');
 }
 function commitGbIntro() {
   if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
   GB.intro = $('#gb-intro').value; gbDirty.intro = false; renderGbDirty();
   toast('园所介绍已保存到草稿');
 }
-function commitGbMsg() {
-  if (GB.status === 'published') { toast('已发布，内容永久只读'); return; }
-  GB.msg[gbMsgTab] = $('#gb-msg').value; gbDirty.msg = false; renderGbDirty();
-  toast(`园长寄语（${GB_GRADES[gbMsgTab]}）已保存到草稿`);
-}
 function gbCommitAll() {
   GB.intro = $('#gb-intro').value;
-  GB.msg[gbMsgTab] = $('#gb-msg').value;
-  gbDirty.intro = gbDirty.msg = false;
+  gbDirty.intro = false;
+}
+function commitGbTermMessage() {
+  if (GB.termMessageLocked) { toast('本学期已有班级锁定编册，学期寄语不可修改'); return; }
+  const value = $('#gb-term-message').value.trim();
+  if (!value) { toast('请填写本学期寄语'); return; }
+  GB.termMessage = value; gbDirty.termMessage = false; renderGbDirty(); renderGbPreview();
+  toast('本学期寄语已保存');
 }
 
 /* --- 园所栏目清单 --- */
@@ -1773,21 +1782,22 @@ function renderGbSecList() {
 }
 
 function renderGrowthBook() {
-  renderGbTemplates();
+  renderGbAssignments();
   $('#gb-logo-thumb').textContent = GB.logo ? 'LOGO' : '未上传';
   $('#gb-cover-thumb').textContent = GB.cover ? '照片' : '未上传';
   $('#gb-logo-name').textContent = GB.logo || '尚未上传';
   $('#gb-cover-name').textContent = GB.cover || '尚未上传';
   $('#gb-cover-title').value = GB.coverTitle;
   $('#gb-intro').value = GB.intro;
-  $('#gb-msg').value = GB.msg[gbMsgTab];
   $('#gb-intro-count').textContent = `${GB.intro.length} / 1000`;
-  $('#gb-msg-count').textContent = `${GB.msg[gbMsgTab].length} / 500`;
-  $('#gb-msg-hint').textContent = gbMsgTab === 'default'
-    ? '通用版本：某个年级没写自己的版本时，就用这一段。'
-    : `${GB_GRADES[gbMsgTab]}版本：留空则该年级回落到「通用」；通用也为空时，这块占位符不渲染，不留空框。`;
-  renderGbIntroPreview(); renderGbMsgPreview(); renderGbDirty(); renderGbSecList();
-  $$('#view-growthbook .input').forEach(el => el.disabled = GB.status === 'published');
+  $('#gb-term-message').value = GB.termMessage;
+  $('#gb-term-message-count').textContent = `${GB.termMessage.length} / 500`;
+  $('#gb-term-message').disabled = GB.termMessageLocked;
+  $('#gb-term-message-save').disabled = GB.termMessageLocked;
+  renderGbIntroPreview(); renderGbDirty(); renderGbSecList();
+  $$('#view-growthbook .input').forEach(el => {
+    if (el.id !== 'gb-term-message') el.disabled = GB.status === 'published';
+  });
   renderGbStatus();
 }
 function renderGbStatus() {
@@ -1805,23 +1815,16 @@ function renderGbStatus() {
   $('#gb-save-draft').disabled = pub;
 }
 
-$('#gb-msg-tabs').addEventListener('click', e => {
-  const t = e.target.closest('.tab'); if (!t) return;
-  if (gbDirty.msg) { GB.msg[gbMsgTab] = $('#gb-msg').value; toast(`已自动保存「${GB_GRADES[gbMsgTab]}」的修改`); }
-  gbDirty.msg = false;
-  gbMsgTab = t.dataset.f;
-  $$('#gb-msg-tabs .tab').forEach(x => x.classList.toggle('on', x === t));
-  renderGrowthBook();
-});
 $('#gb-intro').addEventListener('input', e => {
   gbDirty.intro = true;
   $('#gb-intro-count').textContent = `${e.target.value.length} / 1000`;
   renderGbIntroPreview(); renderGbDirty();
 });
-$('#gb-msg').addEventListener('input', e => {
-  gbDirty.msg = true;
-  $('#gb-msg-count').textContent = `${e.target.value.length} / 500`;
-  renderGbMsgPreview(); renderGbDirty();
+$('#gb-term-message').addEventListener('input', e => {
+  if (GB.termMessageLocked) return;
+  gbDirty.termMessage = true;
+  $('#gb-term-message-count').textContent = `${e.target.value.length} / 500`;
+  renderGbDirty();
 });
 $('#gb-cover-title').addEventListener('input', e => { GB.coverTitle = e.target.value; renderGbIntroPreview(); });
 
@@ -1836,14 +1839,9 @@ function toggleGbPublish() {
   }
   gbCommitAll();
   if (!GB.intro.trim()) { renderGrowthBook(); toast('园所介绍为空，无法发布（全园成长册都会不可定稿）'); return; }
-  // 预设两节与园所栏目走同一套齐备判定：版式声明了图位就得传满
+  // 园所介绍与园所栏目走同一套齐备判定：版式声明了图位就得传满
   const introMiss = gbSecMissing({ layout: GB.introLayout, body: GB.intro, photos: GB.introPhotos });
   if (introMiss.length) { renderGrowthBook(); toast(`园所介绍还缺 ${introMiss.join('、')}，补齐后才能发布`); return; }
-  // 园长寄语整节为空是合法的（该占位符不渲染），只有写了内容才检查图位
-  if (Object.values(GB.msg).some(v => v.trim())) {
-    const msgMiss = gbSecMissing({ layout: GB.msgLayout, body: 'x', photos: GB.msgPhotos });
-    if (msgMiss.length) { renderGrowthBook(); toast(`园长寄语还缺 ${msgMiss.join('、')}，补齐后才能发布`); return; }
-  }
   const bad = GB.sections.find(s => gbSecMissing(s).length);
   if (bad) { renderGrowthBook(); toast(`「${bad.name}」还缺 ${gbSecMissing(bad).join('、')}，补齐后才能发布`); return; }
   GB.status = 'published'; renderGrowthBook();
@@ -1930,42 +1928,59 @@ function deleteGbSec() {
   toast(`已删除栏目「${s.name}」`);
 }
 
-/* --- 整册预览：只画园所配置的页 --- */
+/* --- 正本预览：从具体模板卡片进入，展示完整书脊与正文占位页。 --- */
 const gbCoverTitle = () => GB.coverTitle.trim() || '化龙幼儿园 · 成长册';
-const gbMsgFor = g => (GB.msg[g] || '').trim() || GB.msg.default.trim();
 function gbPage(t, inner, cap) {
   return `<div>
     <div class="book-page">${gbFrame(t)}${inner}</div>
     <div class="book-cap">${cap}</div>
   </div>`;
 }
+function gbPlaceholderPage(t, heading, lines) {
+  return `<div class="book-body">
+    <div class="book-h" style="color:${t.accent};text-align:center">${esc(heading)}</div>
+    ${(lines || []).map(line => `<div class="book-p">${esc(line)}</div>`).join('')}
+  </div>`;
+}
 function renderGbPreview() {
-  const t = gbTpl(), g = gbPreviewGrade, msg = gbMsgFor(g);
-  const fellBack = g !== 'default' && !GB.msg[g].trim() && msg;
+  const t = gbTpl(gbPreviewTemplateCode), [grade,season] = t.slot.split('-');
+  const body = [];
+  gbOutline().forEach(o => {
+    if (o.kind === 'cover' || o.key === 'intro') return;
+    if (o.kind === 'school') {
+      body.push(gbPage(t, gbSecPage(t, o.sec), `${esc(o.name)} · 园所栏目`));
+      return;
+    }
+    const samples = {
+      time:['主题：春天来了','活动标题、教师记录与活动照片将在这里排版。'],
+      task:['亲子活动标题','家长提交的文字与照片将在这里排版。'],
+      term:['教师综合评估','由教师填写的本学期综合评估。'],
+      comp:['五大领域评估','健康、语言、社会、科学、艺术的发展评估。'],
+      message:['学期寄语',GB.termMessage || '全园本学期共用的寄语。']
+    };
+    body.push(gbPage(t, gbPlaceholderPage(t, o.name, samples[o.key] || []), o.name));
+  });
+  const tocEntries = gbOutline().filter(o => o.kind !== 'cover' && o.key !== 'intro').map((o,i) => `${o.name}  ·  ${i + 5}`);
+  const totalPages = 5 + body.length;
   const pages = [
     gbPage(t, gbCoverInner(t), '封面'),
-    gbPage(t, gbSecPage(t, gbMsgAsSection(msg)),
-      `扉页 · 园长寄语（${GB_GRADES[g]}）${fellBack ? ' 回落通用' : ''}`),
+    gbPage(t, gbSecPage(t, { ...gbIntroAsSection(), body: GB.intro }), '园所介绍'),
+    gbPage(t, gbPlaceholderPage(t, '成长册', [
+      '姓名：孩子姓名', '作者：孩子爸爸妈妈、小三班老师',
+      `学期：2026 ${season==='spring'?'春季':'秋季'}学期`, `页数：${totalPages} 页 · 家长与教师记录数由正本生成`
+    ]), '扉页'),
+    gbPage(t, gbPlaceholderPage(t, '目录', tocEntries), 'TOC'),
+    ...body,
+    gbPage(t, gbPlaceholderPage(t, '化龙幼儿园', ['愿每一段成长都被温柔珍藏。']), '封底')
   ];
-  gbOutline().forEach(o => {
-    if (o.kind === 'cover') return;
-    if (o.kind === 'preset') {
-      if (o.key === 'intro') pages.push(gbPage(t,
-        gbSecPage(t, { ...gbIntroAsSection(), body: GB.intro }), '园所介绍 · 预设第 1 栏'));
-      return; // 其余预设项由教师端填充
-    }
-    pages.push(gbPage(t, gbSecPage(t, o.sec), `${esc(o.name)} · 园所栏目`));
-  });
   $('#gb-preview-pages').innerHTML = pages.join('');
-  $('#gb-preview-sub').textContent = `模板「${t.name}」 · ${GB_GRADES[g]}版本 · 园所配置共 ${pages.length} 页`;
+  $('#gb-preview-sub').textContent = `${season==='spring'?'春季':'秋季'} · ${GB_GRADES[grade]} · 模板 ${t.variant}「${t.name}」 · 正本结构 ${pages.length} 页示意`;
 }
-function openGbPreview() { gbCommitAll(); renderGrowthBook(); renderGbPreview(); openModal('modal-gb-preview'); }
-$('#gb-preview-tabs').addEventListener('click', e => {
-  const t = e.target.closest('.tab'); if (!t) return;
-  gbPreviewGrade = t.dataset.f;
-  $$('#gb-preview-tabs .tab').forEach(x => x.classList.toggle('on', x === t));
+function openGbPreview(code) {
+  gbPreviewTemplateCode = code;
   renderGbPreview();
-});
+  openModal('modal-gb-preview');
+}
 </script>
 <script>
 /* ================= 数据看板 ================= */
