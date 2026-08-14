@@ -610,7 +610,7 @@
 
         <div class="card">
           <div class="card-title">年级模板</div>
-          <div class="card-sub">每个季节分别为小、中、大班选择一套模板。选择跨学年沿用，改选只影响之后新建的成长册。</div>
+          <div class="card-sub">每个季节分别为小、中、大班选择一套模板。选择跨学年沿用，随「发布设置」一起锁定；本学期无班级锁定编册时可撤回改选，只影响之后新建的成长册。</div>
           <div class="tabs gb-season-tabs" id="gb-season-tabs">
             <button class="tab on" data-season="spring">春季</button>
             <button class="tab" data-season="autumn">秋季</button>
@@ -1802,16 +1802,21 @@ function renderGrowthBook() {
 }
 function renderGbStatus() {
   const pub = GB.status === 'published';
+  // F20：撤回的闸门与学期寄语的冻结闸门是同一个 predicate ——
+  // 当前园所学期是否已有任一 db_growth_book_compilation 到 e2。
+  const lockedByTerm = GB.termMessageLocked;
   const b = $('#gb-status-badge');
   b.className = 'badge ' + (pub ? 'badge-teal' : 'badge-amber');
   b.textContent = pub ? '已发布' : '草稿';
   $('#gb-status-hint').textContent = pub
-    ? '各班教师已收到模板；园所内容已锁定，不可撤回或修改'
+    ? (lockedByTerm
+        ? '各班教师已收到模板；本学期已有班级锁定编册，园所内容与模板槽位本学期不可再改'
+        : '各班教师已收到模板；本学期尚无班级锁定编册，可撤回设置重编重发')
     : '尚未发布 —— 教师端取不到模板，全园成长册均不可定稿';
   const btn = $('#gb-publish-btn');
-  btn.textContent = pub ? '已发布（已锁定）' : '发布设置';
-  btn.className = 'btn btn-primary';
-  btn.disabled = pub;
+  btn.textContent = pub ? (lockedByTerm ? '本学期已锁定' : '撤回设置') : '发布设置';
+  btn.className = 'btn ' + (pub && !lockedByTerm ? 'btn-ghost' : 'btn-primary');
+  btn.disabled = pub && lockedByTerm;
   $('#gb-save-draft').disabled = pub;
 }
 
@@ -1834,7 +1839,11 @@ function saveGbDraft() {
 }
 function toggleGbPublish() {
   if (GB.status === 'published') {
-    toast('已发布，内容永久只读');
+    // F20：锁定周期是学期不是永久。本学期无 e2 时可撤回回 d1 重编重发；
+    // 既有 release 与已绑定 book_release_id 的成长册不受影响。
+    if (GB.termMessageLocked) { toast('本学期已有班级锁定编册，下学期才能改'); return; }
+    GB.status = 'draft'; renderGrowthBook();
+    toast('已撤回 —— 教师端暂时取不到模板；已定稿的旧册仍读它自己那一版');
     return;
   }
   gbCommitAll();

@@ -14,7 +14,8 @@ id_rule (ID规则) = integer, database_auto_generated
 null_rule (空值规则) = 0:1
 list_rule (列表规则) = 0:k | 1:k
 f17_current_override (现行成长册契约 / 2026-08-12) = DECISIONS.md F17 已取消成长册 PDF／图片档、生成／重导、下载分享、generated file 与 render lease；教师端只做 b1 准备与 b2 App 内定稿开放，b2 永久锁定。本文后方残留的 g2、生成或电子分享措辞只作历史背景，均按本条改读
-f19_current_override (2026-08-13) = 模板为 3 年级 × 春秋 × A/B 共 12 个 released pack；管理端以春／秋 tab 切换，每个 tab 下按小／中／大班纵排三张卡片，每张同时展示两套候选的封面预览、简要说明与正本预览入口。六个常设槽位只保存二选一 pack_code，改选只影响未来新册。册末寄语由 db_school_term.growth_book_message 保存，全园同一学期共用；园长寄语不再是固定内容、字段或槽位开关，需要时仅作为新增园所栏目的提示候选
+f19_current_override (2026-08-13) = 模板为 3 年级 × 春秋 × A/B 共 12 个 released pack；管理端以春／秋 tab 切换，每个 tab 下按小／中／大班纵排三张卡片，每张同时展示两套候选的封面预览、简要说明与正本预览入口。六个常设槽位只保存二选一 pack_code。册末寄语由 db_school_term.growth_book_message 保存，全园同一学期共用；园长寄语不再是固定内容、字段或槽位开关，需要时仅作为新增园所栏目的提示候选
+f20_current_override (2026-08-14) = 园所成长册设置的锁定周期由「首次 d2 后永久唯读」放宽为「按学期」：d2 期间仍不可改，但当前园所学期没有任何 db_growth_book_compilation 处于 e2 时，管理员可明确「撤回设置」回 d1 重编重发；无自动解锁。六槽 assignment 与园所内容同属一个发布包，取消本文原有的 assignment_independence 单槽 CAS 改选。每次成功发布产生一列不可变 db_school_book_release，db_growth_book 建册时绑定 book_release_id，旧册永远读定稿当时那一版。学期寄语不进发布包、须有独立的保存按钮。本文后方与此冲突的措辞一律按本条改读
 
 
 [SHARED_OBJECT_RULE]
@@ -201,13 +202,16 @@ no_grade_section_rule (按年级差异的栏目不由管理端下发 / 2026-08-0
 园长寄语不再是固定页。园所需要时使用 db_school_book_section 新增，并在新增栏目的名称提示中作为候选，不新增专属字段或年级变体
 配套（教师端连带，不在本 spec 范围）：页版式库应预置若干「可选栏目版式」，教师新增栏目时从库中选而非从空白网格排，以免每个大班各排一遍且品质参差
 
-no_snapshot_rule (F19 的有限快照):
-db_growth_book 不复制版式 JSON 或园所正文，只保存建册时解析出的 pack_code
-理由一：美术与版面仍在 repo，只随发版变，不存在运行时漂移
-理由二：assignment 可调整且只影响未来新册；pack_code 快照防止既有册被改选污染
-理由三：不引入整份设置版本表或 JSON 快照
-published_only_addendum (F16 + F17) = 成长册固定园所内容只读取唯一合法 d2。d1 草稿不进入教师预览、定稿或家长查看；d2 后不得撤回、更新发布、删除园所栏目或替换附件
-assignment_independence (F19) = 六个 grade × term_season assignment 不属于上述一次性园所内容发布包；园所内容 d2 后仍可单槽 CAS 改选，且只影响未来新建成长册
+release_snapshot_rule (F20 覆写 F19 的 no_snapshot_rule):
+db_growth_book 仍不复制版式 JSON，但新增建册时绑定且永不回写的 book_release_id FK
+理由一：美术与版面仍在 repo，只随发版变，不存在运行时漂移，所以 pack 只需 code
+理由二：F20 之后园所内容可逐学期改，「读最新」不再等于「读当时」，旧册必须能重现定稿那一版
+理由三：逐册复制园所正文成本高且重复；改为一次发布一列 db_school_book_release，全园共用
+composer 的封面／Logo／园所介绍／版式 code／六槽／园所栏目一律从该 release 读，不读 db_school live 工作区
+唯一例外是 db_school_term.growth_book_message：逐学期一行、term 行本身就是历史，不进 release
+published_only_addendum (F16 + F17 + F20) = 成长册固定园所内容只读取合法 d2。d1 草稿不进入教师预览、定稿或家长查看；d2 期间不得保存草稿、更新发布、删除园所栏目或替换附件
+term_scoped_lock_rule (F20 覆写 F16 的永久唯读) = 锁定周期是学期不是永久。d2 → d1 撤回是合法转移，前置条件是当前园所学期没有任何 db_growth_book_compilation 处于 e2；有任一 e2 回 409 并解释「本学期已有班级锁定编册」。无进行中学期时撤回与发布同样 409。无自动解锁、无定时任务；管理员不动即沿用上学期内容。撤回只解锁 current 工作区并 revision+1，既有 release 与已绑定的 book 不受影响
+assignment_in_package_rule (F20 取消 F19 的 assignment_independence) = 六个 grade × term_season assignment 与封面、园所介绍、园所栏目同属一个发布包，共用 db_school.book_setting_status 的 d1／d2，不另立状态机、不做发布后单槽 CAS 改选。理由：两条独立状态机会产生「内容已冻结但槽位还能改」的中间态，而槽位直接决定正本每一页的版式，那个中间态没有可解释的语意
 
 
 园所学期寄语 (School Term Growth Book Message / db_school_term)
@@ -223,6 +227,8 @@ term_source_rule = 页面只编辑服务端按园所时区派生的当前园所�
 content_rule = trim 后 1—500 字，全园同一学期的每本成长册共用；不是逐年级、逐班或逐幼儿内容
 freeze_rule = 该 school_id + term_id 任一 db_growth_book_compilation 首次成功 e1→e2 后永久唯读；写入时以内联 NOT EXISTS predicate 重验，不可先查后写
 message_distinction = 学期寄语是固定册末正文；园长寄语只可由用户明确创建为普通 db_school_book_section，两者不得互相回退或自动复制
+independent_save_rule (F20) = 学期寄语不属于园所内容发布包，不写入 db_school_book_release 快照；db_school_term 逐学期一行，term 行本身就是它自己的历史。因此它与 book_setting_status 无关，d2 期间仍可单独保存，唯一约束是 freeze_rule
+ui_separation_rule (F20) = 管理端必须给学期寄语一个独立的保存按钮，不得与「保存草稿／发布设置」共用。共用会让第二学期的寄语完全没有写入路径 —— d2 后保存草稿一律 409
 
 
 园所年级季节模板选择 (School Book Template Assignment / db_school_book_template_assignment)
@@ -239,14 +245,16 @@ updated_at (更新时间), 1:1, datetime, ui=growth_book_setting.assignment.upda
 unique (唯一键) = school_id + grade + term_season
 catalog_rule (F19) = 每槽只能引用 pack manifest 中相同 grade／term_season 的 A 或 B；有效 released 目录恰 12 套
 inherit_rule (F19) = assignment 跨学年沿用，不自动按年度建列；管理员主动改选才变化
-future_only_rule (F19) = 创建 db_growth_book 时复制 pack_code；之后 assignment 改动不得 UPDATE 既有 book
-concurrency_rule = 保存带 revision 做 CAS，陈旧写入 409 并刷新六槽；只改目标槽，不重发园所固定内容
+future_only_rule (F19 + F20) = 创建 db_growth_book 时保存 pack_code 与 book_release_id；之后 assignment 或任何园所内容改动都不得 UPDATE 既有 book
+lock_rule (F20) = 六槽只在 book_setting_status=d1 时可改，随园所内容一起 d1→d2 发布并写入 db_school_book_release.assignment_snapshot；d2 期间拒绝写入。撤回回 d1 后可重选重发，条件见 term_scoped_lock_rule
+concurrency_rule = d1 期间保存带 revision 做 CAS，陈旧写入 409 并刷新六槽；只改目标槽，不重发园所固定内容
 
 publish_gate_rule (发布即分发 / 2026-08-03 前端评审):
-book_setting_status=d1 时教师端取不到模板，全园 can_finalize=0；d2 才分发，且 d2 永久锁定
+book_setting_status=d1 时教师端取不到模板，全园 can_finalize=0；d2 才分发并锁定 current 工作区
 这是「管理端统一配置公共内容 → 分发给各班教师个性化填充」在数据层的落点
-首次发布必须在单一事务内写入 db_school 成长册字段、全部 db_school_book_section 及其文件引用；任一校验或写入失败都保持 d1
-d2 后永久禁止撤回或普通业务修改园所固定内容，不以是否已有 b2 作为截止点；assignment 按 F19 独立可改
+每次发布必须在单一事务内写入 db_school 成长册字段、全部 db_school_book_section 及其文件引用，并插入一列不可变 db_school_book_release（含六槽 assignment_snapshot，以及把当前园所栏目行连同 db_file_ref 复制一份挂上该 release_id）；任一校验或写入失败都保持 d1
+d2 期间禁止保存草稿、更新发布、删除园所栏目或替换附件；但按 F20 的 term_scoped_lock_rule 可在本学期无 e2 时撤回回 d1 重发，assignment 随包一起解锁
+book_setting_published_at 记最近一次成功发布时间，UI 称「最近发布」；逐次历史读 db_school_book_release.published_at
 
 can_finalize_extension (对 Teacher 05 home-school-spec.md can_finalize_rule 的补充):
 班级级前置条件增加一条：db_school.book_setting_status=d2
