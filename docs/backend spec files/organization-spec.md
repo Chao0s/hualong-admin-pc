@@ -80,17 +80,64 @@ environment_isolation = demo|test 数据不得复制到 production
 | tab | visible field | canonical field/action | required |
 |---|---|---|---:|
 | teacher | 姓名 | db_teacher.teacher_name | 1 |
-| teacher | 所在班级 | create db_teacher_class.class_id | 1 |
-| teacher | 职务 | db_teacher_profile.job_role and/or db_teacher_class.assignment_role | 1 |
-| teacher | 联系电话 | db_teacher.phone | 0 |
+| teacher | 所在班级 | db_teacher.class_id | 1 |
+| teacher | 职务 | db_teacher_profile.job_role | 1 |
+| teacher | 联系电话 | db_teacher.phone | 1 |
 | class | 班级名称 | db_class.class_name | 1 |
 | class | 年级 | db_class.grade | 1 |
-| class | 带班教师 | create db_teacher_class.teacher_id, assignment_role=lead | 0; “待分配” creates no relation |
+| class | 带班教师 | db_teacher.class_id + db_teacher.assignment_role=r1 | 0; “待分配” creates no relation |
 | class | 计划幼儿数 | db_class.planned_child_count | 1 |
 | child | 幼儿姓名 | db_child.child_name | 1 |
 | child | 所在班级 | db_child.class_id | 1 |
 | child | 性别 | db_child.gender | 1 |
-| child | 家长联系人 | db_parent + db_parent_child | 1; production UI/API MUST submit structured parent_name and phone |
+| child | 家长联系人 | db_parent + db_child.caretakers | 1; production UI/API MUST submit structured parent_name and phone |
+
+b5_b1_correction (2026-08-14 更正) = 上表原有四行引用已被决议拔掉的表：`db_teacher_class`（B5 —— 一位教师只属一个班，关系塌回 db_teacher.class_id + assignment_role 两个纯量列）与 `db_parent_child`（B1 —— 改 db_child.caretakers JSONB）。四行已按落地后的列改写。本节仍有三处未清的同类残留，属存量：[SHARED_OBJECT_RULE] 的 shared_objects 与 [DATA_INITIALIZATION_RULE] 的 base_identity_data 仍列 `db_teacher_class`／`db_parent_child`／`db_upload`（后者由 B10 拔除），[PAGE_OBJECT] 的 teacher_class_id／parent_child_id／upload_id 三栏同理 —— 它们是 persist=0 聚合上的栏位，改动牵涉 rel_map 与 admin_org.* 既有绑定，另批处理
+
+form_ui_note (表单控件标注位置) = 上表说的是「哪一列」，下面 [FORM_WRITE_OBJECTS] 说的是「哪个控件」。两者必须并存：本表已经存在很久，但它是散文，`extract-ui-binding.mjs` 读不到，所以 index.html 的新增表单长期零绑定。标注必须写在管理端 spec 内而不是 Teacher canonical spec 内 —— 抽取器按 spec 所在仓库定 role，而 class_id 在 teacher 角色属 derived、在 admin 角色属 free（scope-rules.json）；写错仓库会让「管理员为幼儿选班级」被判成 §4.6 违规
+
+
+[FORM_WRITE_OBJECTS]
+
+新增教师表单 (Add Teacher Form / db_teacher)
+
+teacher_name (教师姓名), 1:1, max_len=50, ui=admin_org.teacher.name_input
+class_id (所在班级ID), 0:1, integer, ui=admin_org.teacher.class_select|admin_org.class.lead_teacher_select
+assignment_role (班级角色), 0:1, r1=lead(主班)|r2=assistant(配班), ui=admin_org.class.lead_teacher_select
+phone (联系电话), 1:1, phone, ui=admin_org.teacher.phone_input
+
+canonical_source = REUSE Teacher App home-spec.md db_teacher；本块只登记 index.html#org 新增/编辑教师弹层实际写入的列，不重新定义对象
+phone_required (电话必填 / 2026-08-14 更正) = 本行此前写 0:1「选填」，与 DDL 不符：db_teacher.phone 是 NOT NULL + UNIQUE（A2 的跨端身份连结键、G20）。已改 1:1，[FORM_FIELD_INDEX] 的 required 同步改 1，原型 placeholder 从「选填」改为必填并加 maxlength=20。若产品确实要允许暂缺电话，要改的是 DDL 与 A2 身份方案，不能只在本文件写 0:1
+lead_teacher_two_columns (带班教师写两列) = admin_org.class.lead_teacher_select 同时出现在 class_id 与 assignment_role 两行上，因为「谁带这个班」这一个动作要写两列：class_id 记「该教师属于本班」、assignment_role=r1 记「他是主班」。此前只绑了 class_id，主班身份没有任何落点，管理端因此没有一个控件能写 assignment_role。B5 把 db_teacher_class 塌进 db_teacher 之后这两列都在 db_teacher 上，所以一个控件写两列是正确的，服务端在同一交易内写
+job_role_binding (职务控件) = 弹层的「职务」四个选项（带班教师／配班教师／保育员／教研组长）对应 db_teacher_profile.job_role 的 j1—j4，复用 review-spec.md 既有的 teacher_profile.job_role 标注，不另立第二个路径。它不是 db_teacher.assignment_role —— 后者只有 r1 主班／r2 配班两值（B5 砍掉 r3），装不下四个选项；[FORM_FIELD_INDEX] 那句「and/or db_teacher_class.assignment_role」写在 B5 删表之前，已不成立
+school_id_binding (园所归属) = derived，不出现在 data-ui
+
+
+新增班级表单 (Add Class Form / db_class)
+
+class_name (班级名称), 1:1, max_len=50, ui=admin_org.class.name_input
+grade (年级), 1:1, k1=small(小班)|k2=middle(中班)|k3=large(大班), ui=admin_org.class.grade_select
+planned_child_count (计划幼儿数), 0:1, integer, ui=admin_org.class.planned_count_input
+
+canonical_source = REUSE Teacher App home-spec.md db_class；planned_child_count 由本 spec 的 [CANONICAL_FIELD_EXTENSION] 引入
+lead_teacher_binding (带班教师控件) = 弹层的「带班教师」下拉写的是 db_teacher.class_id，不是 db_class 的任何一列 —— B5 之后教师与班级的关系塌在 db_teacher 上，没有 db_teacher_class 可写。因此 admin_org.class.lead_teacher_select 与 admin_org.teacher.class_select 并列声明在上一块的 db_teacher.class_id 那一行：同一列的两个方向（在教师表单里选班、在班级表单里选教师），两条路径一个落点。选「待分配」不建立任何关系
+
+
+新增幼儿表单 (Add Child Form / db_child)
+
+child_name (幼儿姓名), 1:1, max_len=50, ui=admin_org.child.name_input
+class_id (所在班级ID), 1:1, integer, ui=admin_org.child.class_select
+gender (性别), 0:1, g1=female(女)|g2=male(男)|g3=unspecified(未指定), ui=admin_org.child.gender_select
+
+canonical_source = REUSE Teacher App home-spec.md db_child；gender 沿 Parent App child-profile-spec.md 的 canonical 扩展，管理端不得改编码
+parent_contact_binding (家长联系人控件) = 原型的单一「如：陈先生 138****0000」自由文本是 Mock，不可作为生产契约（[FORM_FIELD_INDEX] 已要求结构化 parent_name + phone）。它写的是 db_parent 而非 db_child，故标注 admin_org.child.parent_contact_input 挂在 db_parent.parent_name 上；结构化拆分与 relationship_type 必填仍是待办，见 [JUMP_VALIDATION] 的 422 规则
+
+
+家长联系人 (Parent Contact / db_parent)
+
+parent_name (家长姓名), 1:1, max_len=50, ui=admin_org.child.parent_contact_input
+
+canonical_source = REUSE Parent App home-spec.md db_parent；本块只登记新增幼儿弹层写入的那一列，phone 与 relationship_type 待结构化后再登记
 
 
 [DYNAMIC_CONTENT_NODE]
@@ -126,6 +173,9 @@ parent_child_id (家长幼儿关系ID), 0:k, integer, ui=admin_org.child.contact
 upload_id (上传记录ID), 0:k, integer, ui=admin_org.teacher.upload_count
 growth_record_id (成长档案ID), 0:k, integer, ui=admin_org.child.archive
 assessment_id (测评ID), 0:k, integer, ui=admin_org.class.assessment
+name_query (姓名搜索文字), 0:1, max_len=50, ui=admin_org.name_query
+
+filter_binding (搜索控件绑定) = name_query 是查询参数不是列，落在本 persist=0 聚合上：同一个搜索框按当前 tab 分别搜 db_teacher.teacher_name、db_class.class_name、db_child.child_name，写在任一张表上都只对一个 tab 成立。tab 本身是三个按钮不是写入控件，不需要 ui= 标注
 
 rel_count (关系数量) = 13
 rel_db (关联表) = db_admin, db_school, db_admin_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_parent, db_parent_child, db_upload, db_growth_record, db_assessment

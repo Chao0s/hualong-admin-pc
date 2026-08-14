@@ -458,10 +458,10 @@
             <button class="tab" data-f="幼儿资料">幼儿资料</button>
           </div>
           <div class="spacer"></div>
-          <select class="input" id="child-review-scope" hidden><option value="pending">待审核</option><option value="processed">已处理</option></select>
-          <select class="input" id="child-review-class" hidden><option value="all">全部班级</option><option>小一班</option><option>中一班</option><option>大一班</option></select>
-          <select class="input" id="child-review-result" hidden><option value="all">全部结果</option><option value="approved">已批准</option><option value="rejected">已驳回</option></select>
-          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="review-search" placeholder="搜索名称 / 教师"></div>
+          <select class="input" id="child-review-scope" data-ui="admin_review.child_profile.scope_filter" hidden><option value="pending">待审核</option><option value="processed">已处理</option></select>
+          <select class="input" id="child-review-class" data-ui="admin_review.child_profile.class_filter" hidden><option value="all">全部班级</option><option>小一班</option><option>中一班</option><option>大一班</option></select>
+          <select class="input" id="child-review-result" data-ui="admin_review.child_profile.result_filter" hidden><option value="all">全部结果</option><option value="approved">已批准</option><option value="rejected">已驳回</option></select>
+          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="review-search" data-ui="admin_review.name_query" placeholder="搜索名称 / 教师"></div>
         </div>
         <div class="card" style="padding: 6px 20px;">
           <table class="tbl">
@@ -475,13 +475,13 @@
       <section class="view" id="view-library">
         <div class="grid coverage-grid" id="lib-grade-coverage" aria-label="教师首页案例年级覆盖率"></div>
         <div class="toolbar">
-          <select class="input" id="lib-type"><option value="all">全部类型</option><option>资源</option><option>案例</option></select>
-          <select class="input" id="lib-cat"><option value="all">全部分类</option><option>衣</option><option>食</option><option>住</option><option>行</option><option>艺</option></select>
-          <select class="input" id="lib-grade"><option value="all">全部年级</option><option>小班</option><option>中班</option><option>大班</option><option>通用</option></select>
-          <select class="input" id="lib-term" aria-label="学期时间窗口"></select>
-          <select class="input" id="lib-status"><option value="all">全部状态</option><option>已发布</option><option>待审核</option><option>已下架</option></select>
+          <select class="input" id="lib-type" data-ui="admin_library.type_filter"><option value="all">全部类型</option><option>资源</option><option>案例</option></select>
+          <select class="input" id="lib-cat" data-ui="admin_library.category_filter"><option value="all">全部分类</option><option>衣</option><option>食</option><option>住</option><option>行</option><option>艺</option></select>
+          <select class="input" id="lib-grade" data-ui="admin_library.grade_filter"><option value="all">全部年级</option><option>小班</option><option>中班</option><option>大班</option><option>通用</option></select>
+          <select class="input" id="lib-term" data-ui="admin_library.term_filter" aria-label="学期时间窗口"></select>
+          <select class="input" id="lib-status" data-ui="admin_library.status_filter"><option value="all">全部状态</option><option>已发布</option><option>待审核</option><option>已下架</option></select>
           <div class="spacer"></div>
-          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="lib-search" placeholder="搜索名称"></div>
+          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="lib-search" data-ui="admin_library.name_query" placeholder="搜索名称"></div>
         </div>
         <div class="card" style="padding: 6px 20px;">
           <table class="tbl">
@@ -524,8 +524,8 @@
       <!-- ======== 视图：测评数据 ======== -->
       <section class="view" id="view-assessment">
         <div class="toolbar">
-          <select class="input" id="assess-class"></select>
-          <select class="input"><option>2026 学年 · 第二学期</option><option>2026 学年 · 第一学期</option></select>
+          <select class="input" id="assess-class" data-ui="admin_assessment.class_select"></select>
+          <select class="input" data-ui="admin_assessment.period_select"><option>2026 学年 · 第二学期</option><option>2026 学年 · 第一学期</option></select>
           <div class="spacer"></div>
           <button class="btn" onclick="toast('原型演示：已生成班级测评报告（PDF）')">导出班级报告</button>
         </div>
@@ -568,7 +568,7 @@
             <button class="tab" data-f="kid">幼儿</button>
           </div>
           <div class="spacer"></div>
-          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="org-search" placeholder="搜索姓名"></div>
+          <div class="search-box"><svg><use href="#i-search"/></svg><input class="input" id="org-search" data-ui="admin_org.name_query" placeholder="搜索姓名"></div>
           <button class="btn btn-primary" onclick="openOrgModal()" id="org-add-btn">＋ 新增教师</button>
         </div>
         <div class="card" style="padding: 6px 20px;">
@@ -647,7 +647,7 @@
           </div>
           <div class="form-row mt" style="margin-bottom:0">
             <label>封面标题文字</label>
-            <input class="input" id="gb-cover-title" maxlength="20" placeholder="留空则用「化龙幼儿园 · 成长册」">
+            <input class="input" id="gb-cover-title" maxlength="20" data-ui="growth_book_setting.cover_title" placeholder="留空则用「化龙幼儿园 · 成长册」">
           </div>
         </div>
 
@@ -663,7 +663,7 @@
           <div class="gb-split">
             <div>
               <div class="form-row"><label>版式</label><div class="lay-grid" id="gb-intro-layouts"></div></div>
-              <textarea class="input" id="gb-intro" maxlength="1000" style="width:100%; min-height:150px" placeholder="办园理念 / 园所沿革 / 特色课程…"></textarea>
+              <textarea class="input" id="gb-intro" maxlength="1000" data-ui="growth_book_setting.intro_input" style="width:100%; min-height:150px" placeholder="办园理念 / 园所沿革 / 特色课程…"></textarea>
               <div id="gb-intro-photos" class="mt"></div>
               <div class="field-hint">正文发布前必填 —— 为空时全园每本成长册都不可定稿。右侧预览随输入即时更新，「确认保存」才写入草稿。</div>
             </div>
@@ -714,12 +714,12 @@
   <div class="modal">
     <h3>发布教师任务</h3>
     <div class="modal-sub">任务将推送至教师端「待办任务」</div>
-    <div class="form-row"><label>任务标题</label><input class="input" id="task-title-input" placeholder="如：提交本月龙舟主题活动方案"></div>
+    <div class="form-row"><label>任务标题</label><input class="input" id="task-title-input" maxlength="50" data-ui="admin_task.title_input" placeholder="如：提交本月龙舟主题活动方案"></div>
     <div class="form-row"><label>指派对象</label>
-      <select class="input" id="task-assignee-input"><option>全体教师</option><option>小班组</option><option>中班组</option><option>大班组</option><option>教研培训部</option></select>
+      <select class="input" id="task-assignee-input" data-ui="admin_task.assignee_selector"><option>全体教师</option><option>小班组</option><option>中班组</option><option>大班组</option><option>教研培训部</option></select>
     </div>
-    <div class="form-row"><label>截止时间</label><input class="input" id="task-deadline-input" type="date" value="2026-07-20"></div>
-    <div class="form-row"><label>任务说明</label><textarea class="input" placeholder="任务背景 / 分工 / 时间节点…"></textarea></div>
+    <div class="form-row"><label>截止时间</label><input class="input" id="task-deadline-input" type="date" data-ui="admin_task.due_input" value="2026-07-20"></div>
+    <div class="form-row"><label>任务说明</label><textarea class="input" maxlength="300" data-ui="admin_task.intro_input" placeholder="任务背景 / 分工 / 时间节点…"></textarea></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModals()">取消</button>
       <button class="btn btn-primary" onclick="publishTask()">发布</button>
@@ -743,11 +743,11 @@
   <div class="modal">
     <h3>发布内容</h3>
     <div class="modal-sub">发布至教师端对应栏目</div>
-    <div class="form-row"><label>标题</label><input class="input" id="content-title-input" placeholder="请输入标题"></div>
+    <div class="form-row"><label>标题</label><input class="input" id="content-title-input" maxlength="100" data-ui="admin_content.publish.title_input" placeholder="请输入标题"></div>
     <div class="form-row"><label>栏目</label>
-      <select class="input" id="content-col-input"><option>党建学习</option><option>党建活动</option><option>品牌建设</option><option>通知文件</option><option>政策法规</option><option>教研培训</option></select>
+      <select class="input" id="content-col-input" data-ui="admin_content.publish.category_select"><option>党建学习</option><option>党建活动</option><option>品牌建设</option><option>通知文件</option><option>政策法规</option><option>教研培训</option></select>
     </div>
-    <div class="form-row"><label>正文 / 简介</label><textarea class="input" placeholder="图文介绍…"></textarea></div>
+    <div class="form-row"><label>正文 / 简介</label><textarea class="input" maxlength="2000" data-ui="admin_content.publish.body_input" placeholder="图文介绍…"></textarea></div>
     <div class="form-row"><label>附件</label><button class="btn btn-sm" onclick="toast('原型演示：附件上传待接入')">＋ 上传 Word / PDF</button></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModals()">取消</button>
@@ -774,11 +774,11 @@
     <div class="modal-sub">内容填定后随成长册设置一起下发，全园每本册子内容相同；教师端不可改、不可删</div>
     <div class="gb-split">
       <div>
-        <div class="form-row"><label>栏目名称</label><input class="input" id="gb-sec-name" maxlength="10" placeholder="如：园所大事记、园长寄语"></div>
+        <div class="form-row"><label>栏目名称</label><input class="input" id="gb-sec-name" maxlength="10" data-ui="school_book_section.name_input" placeholder="如：园所大事记、园长寄语"></div>
         <div class="form-row"><label>栏目版式</label><div class="lay-grid" id="gb-sec-layouts"></div></div>
-        <div class="form-row"><label>插入位置</label><select class="input" id="gb-sec-anchor"></select></div>
-        <div class="form-row"><label>标题文字</label><input class="input" id="gb-sec-htext" maxlength="20" placeholder="留空则用栏目名称"></div>
-        <div class="form-row" id="gb-sec-body-row"><label>正文</label><textarea class="input" id="gb-sec-body" maxlength="300" style="min-height:80px" placeholder="这一页要讲的话…"></textarea></div>
+        <div class="form-row"><label>插入位置</label><select class="input" id="gb-sec-anchor" data-ui="school_book_section.anchor_select"></select></div>
+        <div class="form-row"><label>标题文字</label><input class="input" id="gb-sec-htext" maxlength="20" data-ui="school_book_section.heading_input" placeholder="留空则用栏目名称"></div>
+        <div class="form-row" id="gb-sec-body-row"><label>正文</label><textarea class="input" id="gb-sec-body" maxlength="300" data-ui="school_book_section.body_input" style="min-height:80px" placeholder="这一页要讲的话…"></textarea></div>
         <div class="form-row" id="gb-sec-photo-row" style="margin-bottom:0"><label id="gb-sec-photo-label">照片</label><div id="gb-sec-photos"></div></div>
       </div>
       <div>
@@ -1448,22 +1448,22 @@ function openOrgModal() {
   let html = '';
   if (orgTab === 'teacher') {
     html = `
-      <div class="form-row"><label>姓名</label><input class="input" id="org-name-input" placeholder="请输入教师姓名"></div>
-      <div class="form-row"><label>所在班级</label><select class="input" id="org-class-input">${classOptions()}</select></div>
-      <div class="form-row"><label>职务</label><select class="input" id="org-role-input"><option>带班教师</option><option>配班教师</option><option>保育员</option><option>教研组长</option></select></div>
-      <div class="form-row"><label>联系电话</label><input class="input" id="org-phone-input" placeholder="选填"></div>`;
+      <div class="form-row"><label>姓名</label><input class="input" id="org-name-input" maxlength="50" data-ui="admin_org.teacher.name_input" placeholder="请输入教师姓名"></div>
+      <div class="form-row"><label>所在班级</label><select class="input" id="org-class-input" data-ui="admin_org.teacher.class_select">${classOptions()}</select></div>
+      <div class="form-row"><label>职务</label><select class="input" id="org-role-input" data-ui="teacher_profile.job_role"><option value="j1">主班</option><option value="j2">配班</option><option value="j3">保育员</option><option value="j4">教研组长</option><option value="j5">其他</option></select></div>
+      <div class="form-row"><label>联系电话</label><input class="input" id="org-phone-input" maxlength="20" data-ui="admin_org.teacher.phone_input" placeholder="必填，跨端身份连结键"></div>`;
   } else if (orgTab === 'class') {
     html = `
-      <div class="form-row"><label>班级名称</label><input class="input" id="org-name-input" placeholder="如：小三班"></div>
-      <div class="form-row"><label>年级</label><select class="input" id="org-grade-input"><option>小班</option><option>中班</option><option>大班</option></select></div>
-      <div class="form-row"><label>带班教师</label><select class="input" id="org-teacher-input">${TEACHERS.map(t => `<option>${esc(t.name)}</option>`).join('')}<option>待分配</option></select></div>
-      <div class="form-row"><label>计划幼儿数</label><input class="input" id="org-kids-input" type="number" value="30" min="1"></div>`;
+      <div class="form-row"><label>班级名称</label><input class="input" id="org-name-input" maxlength="50" data-ui="admin_org.class.name_input" placeholder="如：小三班"></div>
+      <div class="form-row"><label>年级</label><select class="input" id="org-grade-input" data-ui="admin_org.class.grade_select"><option>小班</option><option>中班</option><option>大班</option></select></div>
+      <div class="form-row"><label>带班教师</label><select class="input" id="org-teacher-input" data-ui="admin_org.class.lead_teacher_select">${TEACHERS.map(t => `<option>${esc(t.name)}</option>`).join('')}<option>待分配</option></select></div>
+      <div class="form-row"><label>计划幼儿数</label><input class="input" id="org-kids-input" type="number" data-ui="admin_org.class.planned_count_input" value="30" min="1"></div>`;
   } else {
     html = `
-      <div class="form-row"><label>幼儿姓名</label><input class="input" id="org-name-input" placeholder="请输入幼儿姓名"></div>
-      <div class="form-row"><label>所在班级</label><select class="input" id="org-class-input">${classOptions()}</select></div>
-      <div class="form-row"><label>性别</label><select class="input" id="org-gender-input"><option>男</option><option>女</option></select></div>
-      <div class="form-row"><label>家长联系人</label><input class="input" id="org-parent-input" placeholder="如：陈先生 138****0000"></div>`;
+      <div class="form-row"><label>幼儿姓名</label><input class="input" id="org-name-input" maxlength="50" data-ui="admin_org.child.name_input" placeholder="请输入幼儿姓名"></div>
+      <div class="form-row"><label>所在班级</label><select class="input" id="org-class-input" data-ui="admin_org.child.class_select">${classOptions()}</select></div>
+      <div class="form-row"><label>性别</label><select class="input" id="org-gender-input" data-ui="admin_org.child.gender_select"><option value="g2">男</option><option value="g1">女</option><option value="g3">未指定</option></select></div>
+      <div class="form-row"><label>家长联系人</label><input class="input" id="org-parent-input" maxlength="50" data-ui="admin_org.child.parent_contact_input" placeholder="如：陈先生 138****0000"></div>`;
   }
   $('#org-form').innerHTML = html;
   openModal('modal-org');

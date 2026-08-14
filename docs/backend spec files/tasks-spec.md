@@ -80,6 +80,22 @@ environment_isolation = demo|test 数据不得复制到 production
 | 截止时间 | db_task.due_at | 1 | future datetime |
 | 任务说明 | db_task.task_intro|task_division | 1 | split/validate per API contract; max_len follows canonical fields |
 
+form_ui_note (表单控件标注位置) = 上表是散文，`extract-ui-binding.mjs` 读不到，所以 modal-task 长期零绑定。下面 [FORM_WRITE_OBJECTS] 是同一件事的机器可读形式，两者必须一起改
+
+
+[FORM_WRITE_OBJECTS]
+
+发布教师任务表单 (Publish Task Form / db_task)
+
+task_title (任务标题), 1:1, max_len=50, ui=admin_task.title_input
+task_intro (任务说明), 1:1, max_len=300, ui=admin_task.intro_input
+due_at (截止时间), 1:1, datetime, ui=admin_task.due_input
+
+canonical_source = REUSE Teacher App home-spec.md db_task；本块只登记 index.html#tasks 的 modal-task 实际写入的列
+assignee_binding (指派对象控件) = 弹层的「指派对象」下拉不是任何一列：它的值是 all_teachers|grade_group|department 这类选择器语意，服务端解析成一批真实 teacher_id 后批量建 db_task_assign（见 [REUSED_OBJECT_USAGE] 的 publish_method）。因此登记为本页 persist=0 聚合 db_admin_task_home 上的 assignee_selector，不挂在 db_task_assign.teacher_id 上 —— 那一列存的是解析结果，不是使用者选的东西
+task_division_binding (任务分工) = 原型只有一个「任务说明」textarea，写 task_intro；task_division 目前无控件，等 API 契约定下拆分方式后再补标注，不预先造一个假控件
+created_by_admin_id (创建管理员) = derived，不出现在 data-ui
+
 
 [DYNAMIC_CONTENT_NODE]
 
@@ -101,9 +117,10 @@ admin_id (管理员ID), 1:1, integer, ui=context.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 admin_school_id (授权ID), 1:1, integer, ui=context.hidden
 task_id (任务ID), 0:k, integer, ui=admin_task.rows
-assign_id (任务分配ID), 0:k, integer, ui=admin_task.progress|detail
+assign_id (任务分配ID), 0:k, integer, ui=admin_task.progress|admin_task.detail
 teacher_id (执行教师ID), 0:k, integer, ui=admin_task.detail.assignee
 teacher_profile_id (教师专业档案ID), 0:k, integer, ui=context.hidden
+assignee_selector (指派对象选择), 0:1, all_teachers|grade_group|department, ui=admin_task.assignee_selector
 
 rel_count (关系数量) = 7
 rel_db (关联表) = db_admin, db_school, db_admin_school, db_task, db_task_assign, db_teacher, db_teacher_profile

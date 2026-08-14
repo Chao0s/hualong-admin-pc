@@ -106,6 +106,12 @@ credential_id (教师证书/奖项ID), 0:k, integer, ui=admin_review.profile.cre
 feedback_id (研修反馈ID), 0:k, integer, ui=admin_review.feedback.rows
 child_profile_correction_id (幼儿资料更正ID), 0:k, integer, ui=admin_review.child_profile.rows
 review_action_id (审核动作ID), 0:k, integer, ui=admin_review.action.hidden
+name_query (名称/教师搜索文字), 0:1, max_len=50, ui=admin_review.name_query
+child_scope_filter (幼儿资料待审/已处理), 0:1, pending|processed, ui=admin_review.child_profile.scope_filter
+child_class_filter (幼儿资料班级筛选), 0:1, all|class_id, ui=admin_review.child_profile.class_filter
+child_result_filter (幼儿资料结果筛选), 0:1, all|approved|rejected, ui=admin_review.child_profile.result_filter
+
+filter_binding (筛选控件绑定) = 以上五栏是查询参数不是列，因此落在本 persist=0 聚合上而不是各目标表：一个搜索框要同时搜五种 target_type 的名称与教师，写在任一目标表上都只对一种成立。班级筛选的 class_id 在管理端属 free（scope-rules.json），但服务端仍须把 derived school_id 内联进同一条 predicate。三个幼儿资料筛选只在该 tab 显示，其余 tab 隐藏而非删除
 
 rel_count (关系数量) = 12
 rel_db (关联表) = db_admin, db_school, db_admin_school, db_upload, db_resource, db_case, db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_child_profile_correction, db_review_action
@@ -174,7 +180,7 @@ feedback_id (研修反馈ID), 1:1, integer, ui=admin_review.feedback.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 training_id (研修活动ID), 1:1, integer, ui=admin_review.feedback.training
 teacher_id (反馈教师ID), 1:1, integer, ui=admin_review.feedback.teacher
-feedback_text (反馈内容), 1:1, max_len=1000, ui=admin_review.feedback.text
+feedback_text (反馈内容), 1:1, max_len=1000, ui=admin_review.feedback.text|training_detail.feedback_input
 feedback_status (反馈状态), 1:1, s2=pending(待审核)|s3=published(已公开)|s4=rejected(已驳回)|s5=withdrawn(已撤回), ui=admin_review.feedback.status
 submitted_at (提交时间), 0:1, datetime, ui=admin_review.feedback.submitted_at
 published_at (公开时间), 0:1, datetime, ui=context.hidden
@@ -189,6 +195,7 @@ participation_rule = only matching db_training_participation.status=s3 completed
 content_rule = feedback_text required max 1000; attachments FORBIDDEN
 identity_rule = published list reads current db_teacher.teacher_name through teacher_id; no duplicated name snapshot
 draft_rule = server draft NONE；submit directly INSERTS s2 pending；unsubmitted text is page-local and discarded when leaving
+ui_surface_rule = feedback_text 有两个界面：教师在 Teacher/screens/training-detail.html 写（training_detail.feedback_input），admin 在审核中心读（admin_review.feedback.text）。两个路径并列在同一行 ui= 上，因为对象 canonical 只此一份、Teacher/04 training-center-spec.md 只 REUSE 不重新宣告字段；把标注写到教师端 spec 会让同一列抽出两份互不知情的绑定
 submission_lock = first successful submission permanently freezes feedback_text；s2|s3|s4|s5 cannot edit or submit again；UNIQUE(training_id,teacher_id) forbids a replacement row
 rejection_rule = target_type=training_feedback AND decision=d2 rejected REQUIRES decision_reason max 500；reason is returned to the author；other target types retain their own optionality
 terminal_rule = admin rejection s4 and author withdrawal s5 are terminal；row and immutable review actions remain；physical delete and resubmission are FORBIDDEN

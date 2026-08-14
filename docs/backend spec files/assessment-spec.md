@@ -88,12 +88,13 @@ admin_assessment_home_id (页面聚合ID), 1:1, integer, ui=admin_assessment.pag
 admin_id (管理员ID), 1:1, integer, ui=context.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 admin_school_id (授权ID), 1:1, integer, ui=context.hidden
-class_id (班级ID), 0:k, integer, ui=admin_assessment.rows|selector
+class_id (班级ID), 0:k, integer, ui=admin_assessment.rows|admin_assessment.class_select
 teacher_id (带班教师ID), 0:k, integer, ui=admin_assessment.teacher
 teacher_class_id (教师班级关系ID), 0:k, integer, ui=context.hidden
 child_id (在园幼儿ID), 0:k, integer, ui=admin_assessment.total
-assessment_id (测评ID), 0:k, integer, ui=admin_assessment.done|status
-item_id (测评项ID), 0:k, integer, ui=admin_assessment.domain_average|radar
+assessment_id (测评ID), 0:k, integer, ui=admin_assessment.done|admin_assessment.status
+assessment_period (筛选评估周期), 0:1, YYYY-MM|school_term, ui=admin_assessment.period_select
+item_id (测评项ID), 0:k, integer, ui=admin_assessment.domain_average|admin_assessment.radar
 
 rel_count (关系数量) = 9
 rel_db (关联表) = db_admin, db_school, db_admin_school, db_class, db_teacher, db_teacher_class, db_child, db_assessment, db_assessment_item

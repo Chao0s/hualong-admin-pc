@@ -108,6 +108,13 @@ content_metric_id (内容统计ID), 0:k, integer, ui=admin_library.views
 file_id (预览文件ID), 0:k, integer, ui=admin_library.preview
 grade_case_coverage (年级推荐覆盖率), 3, composite(k1|k2|k3 each 0:3), ui=admin_library.coverage
 term_id (筛选学期ID), 0:1, school_term, ui=admin_library.term_filter
+content_type_filter (筛选内容类型), 0:1, all|resource|case, ui=admin_library.type_filter
+category_filter (筛选资源标签), 0:1, all|g1|g2|g3|g4|g5, ui=admin_library.category_filter
+grade_filter (筛选适用年级), 0:1, all|k1|k2|k3|general, ui=admin_library.grade_filter
+status_filter (筛选内容状态), 0:1, all|s2|s3|s5, ui=admin_library.status_filter
+name_query (名称搜索文字), 0:1, max_len=50, ui=admin_library.name_query
+
+filter_binding (筛选控件绑定) = 以上六栏是查询参数不是列，落在本 persist=0 聚合上：表格是 db_resource 与 db_case 的联集视图，同一个筛选值要同时作用于两张表，写在任一张上都只对一半成立。type_filter 决定联集取哪一侧，category_filter 对应两表共有的 resource_tag，grade_filter 的 general 表示 grade 为空（资源不限年级），status_filter 映射 resource_status/case_status 的 s2 待审核／s3 已发布／s5 已下架。年级覆盖率不受这六栏影响，见 [GRADE_COVERAGE_RULE] 的 filter_independence
 
 rel_count (关系数量) = 10
 rel_db (关联表) = db_admin, db_school, db_school_term, db_admin_school, db_resource, db_case, db_home_case, db_training_recommendation, db_content_metric, db_file

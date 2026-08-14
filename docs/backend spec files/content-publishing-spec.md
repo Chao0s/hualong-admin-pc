@@ -151,6 +151,12 @@ training_participation_id (研修参与ID), 0:k, integer, ui=admin_content.train
 participant_teacher_id (参与教师ID), 0:k, integer, ui=admin_content.training.participation.teacher
 file_id (附件ID), 0:k, integer, ui=admin_content.attachment
 content_metric_id (内容统计ID), 0:k, integer, ui=admin_content.metric
+publish_category (发布栏目选择), 0:1, party_study|party_activity|party_brand|coord_document|training, ui=admin_content.publish.category_select
+publish_title (发布标题输入), 0:1, max_len=100, ui=admin_content.publish.title_input
+publish_body (发布正文输入), 0:1, max_len=2000, ui=admin_content.publish.body_input
+
+publish_form_binding (发布弹层控件绑定) = modal-content 是一个按栏目分派的表单：同一个标题框按 publish_category 写 db_party_study.study_title、db_party_activity.activity_title、db_party_brand.brand_title、db_coord_document.document_title 或 db_training.training_title，正文框同理写各自的 *_content。因此三栏登记在本 persist=0 聚合上，而不是任选一张目标表 —— 挂在任一张上都只对五分之一的栏目成立，而 data-ui 是写在 markup 上的单一值，无法随 tab 改写。[FORM_FIELD_INDEX] 的 CATEGORY_OBJECT_MAP 仍是「哪个栏目落哪张表」的权威，本三栏只负责「哪个控件」
+publish_form_unbuilt (原型尚未建的控件) = 学习类型、发布部门、外部视频链接、活动时间／地点、品牌标签、发布日期、研修开始／结束／地点／主讲人、会议入口与三类 db_file_ref 附件在 index.html 里都还没有控件（附件只有一个 toast 按钮）。它们在 [FORM_FIELD_INDEX] 已有列级归属，等原型建出控件时再逐个补 ui= 标注，不预先造假路径
 
 rel_count (关系数量) = 12
 rel_db (关联表) = db_admin, db_school, db_admin_school, db_teacher, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training, db_training_participation, db_file, db_content_metric
