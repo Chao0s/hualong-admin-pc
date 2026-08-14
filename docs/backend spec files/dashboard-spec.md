@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 canonical_registry (canonical 注册表) = docs/spec-handoff.md
 shared_object_source (共享对象来源) = Teacher App home-spec.md|home-school-spec.md; review-spec.md
 shared_objects (共享对象) = db_school, db_teacher, db_class, db_child, db_resource, db_case, db_assessment, db_teacher_profile_change, db_training_feedback
-new_identity_objects_defined_here (本页首次定义的身份对象) = db_admin, db_admin_school
+new_identity_objects_defined_here (本页首次定义的身份对象) = db_admin
 admin_page_aggregate (管理端页面聚合) = db_admin_home
 rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
 
@@ -24,9 +24,9 @@ rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id_source (管理员ID来源) = auth_session.admin_id
-allowed_school_id_source (授权园所来源) = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id_source (授权园所来源) = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_rule (当前园所规则) = current_school_id MUST IN allowed_school_id
-permission_source (权限来源) = db_admin_school.role|permission_scope
+permission_source (权限来源) = db_admin.role|permission_scope
 required_permission (所需权限) = dashboard.read; dashboard.export for btn_admin_export
 raw_identity_ui (原始身份ID界面) = context.hidden
 client_editable (前端可编辑) = 0
@@ -41,7 +41,7 @@ business_seed (生产业务种子) = NONE
 dynamic_list_without_data (无业务数据动态列表) = []
 dynamic_count_without_data (无业务数据动态数量) = 0
 unassigned_or_unstarted_status (未分配或未开始状态) = not_started
-base_identity_data (基础数据) = db_school|db_admin|db_admin_school|db_teacher|db_class|db_child 可由部署或有权管理员初始化
+base_identity_data (基础数据) = db_school|db_admin|db_teacher|db_class|db_child 可由部署或有权管理员初始化
 hardcoded_business_id (固定业务ID) = FORBIDDEN
 environment_isolation (环境隔离) = demo|test 数据不得复制到 production
 
@@ -87,7 +87,6 @@ dynamic_rule (动态规则) = 标题、名称、数量、日期、百分比、�
 admin_home_id (管理端首页ID), 1:1, integer, ui=admin_dashboard.page
 admin_id (当前管理员ID), 1:1, integer, ui=context.hidden
 school_id (当前园所ID), 1:1, integer, ui=context.hidden
-admin_school_id (管理员园所授权ID), 1:1, integer, ui=context.hidden
 child_id (在园幼儿ID), 0:k, integer, ui=admin_dashboard.kpi.child_count
 teacher_id (教职工ID), 0:k, integer, ui=admin_dashboard.kpi.teacher_count
 resource_id (资源ID), 0:k, integer, ui=admin_dashboard.resource.trend|kpi
@@ -97,9 +96,9 @@ class_id (班级ID), 0:k, integer, ui=admin_dashboard.assessment.rows
 teacher_profile_change_id (教师资料变更ID), 0:k, integer, ui=admin_dashboard.review.queue
 feedback_id (研修反馈ID), 0:k, integer, ui=admin_dashboard.review.queue
 
-rel_count (关系数量) = 11
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_child, db_teacher, db_resource, db_case, db_assessment, db_class, db_teacher_profile_change, db_training_feedback
-rel_map (关系字段) = db_admin_home{admin_id}<->db_admin{admin_id}; db_admin_home{school_id}<->db_school{school_id}; db_admin_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_home{child_id}<->db_child{child_id}; db_admin_home{teacher_id}<->db_teacher{teacher_id}; db_admin_home{resource_id}<->db_resource{resource_id}; db_admin_home{case_id}<->db_case{case_id}; db_admin_home{assessment_id}<->db_assessment{assessment_id}; db_admin_home{class_id}<->db_class{class_id}; db_admin_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_home{feedback_id}<->db_training_feedback{feedback_id}
+rel_count (关系数量) = 10
+rel_db (关联表) = db_admin, db_school, db_child, db_teacher, db_resource, db_case, db_assessment, db_class, db_teacher_profile_change, db_training_feedback
+rel_map (关系字段) = db_admin_home{admin_id}<->db_admin{admin_id}; db_admin_home{school_id}<->db_school{school_id}; db_admin_home{child_id}<->db_child{child_id}; db_admin_home{teacher_id}<->db_teacher{teacher_id}; db_admin_home{resource_id}<->db_resource{resource_id}; db_admin_home{case_id}<->db_case{case_id}; db_admin_home{assessment_id}<->db_assessment{assessment_id}; db_admin_home{class_id}<->db_class{class_id}; db_admin_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_home{feedback_id}<->db_training_feedback{feedback_id}
 persist (是否持久化) = 0
 object_type (对象类型) = aggregate
 
@@ -110,24 +109,23 @@ object_type (对象类型) = aggregate
 
 admin_id (管理员ID), 1:1, integer, ui=context.hidden
 admin_name (管理员姓名), 1:1, max_len=50, ui=topbar.admin_name
-admin_status (管理员状态), 1:1, s1=active(启用)|s2=inactive(停用)|s3=suspended(暂停), ui=context.hidden
-
-rel_count (关系数量) = 0
-
-
-管理员园所授权 (Admin-School Authorization / db_admin_school)
-
-admin_school_id (管理员园所授权ID), 1:1, integer, ui=context.hidden
-admin_id (管理员ID), 1:1, integer, ui=context.hidden
 school_id (园所ID), 1:1, integer, ui=context.hidden
 role (管理员角色), 1:1, r1=super_admin(超级管理员)|r2=school_admin(园所管理员)|r3=department_admin(部门管理员)|r4=auditor(审核员)|r5=analyst(数据查看员), ui=topbar.admin_role
 permission_scope (权限范围), 1:k, permission_key, ui=context.hidden
-is_active (是否有效), 1:1, boolean, ui=context.hidden
+admin_status (管理员状态), 1:1, s1=active(启用)|s2=inactive(停用)|s3=suspended(暂停), ui=context.hidden
 
-rel_count (关系数量) = 2
-rel_db (关联表) = db_admin, db_school
-rel_map (关系字段) = db_admin_school{admin_id}<->db_admin{admin_id}; db_admin_school{school_id}<->db_school{school_id}
-unique (唯一键) = admin_id + school_id
+rel_count (关系数量) = 1
+rel_db (关联表) = db_school
+rel_map (关系字段) = db_admin{school_id}<->db_school{school_id}
+
+
+管理员园所授权 (Admin-School Authorization / 无独立表)
+
+[db_admin_school 已删除 —— DECISIONS.md B3：单园系统下它实际是 1:1，
+ 整张併回 db_admin（school_id + role + permission_scope，见上方）。
+ permission_scope 本来就已是 JSON，併表不增加新的存储形态。
+ is_active 比照 B1 用「从数组/关系中移除」表达，不留软旗标。
+ 代价：管理员的授权边界改为读 db_admin 上的 JSON，服务层需涵盖 GAPS.md G22 的三项失去。]
 
 
 [REUSED_OBJECT_USAGE]
