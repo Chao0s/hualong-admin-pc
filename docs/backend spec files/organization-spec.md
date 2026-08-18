@@ -17,7 +17,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; review-spec.md; Teacher App home-spec.md|home-school-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_upload, db_growth_record, db_assessment
+shared_objects = db_admin, db_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_upload, db_growth_record, db_assessment
 reserved_identity_objects_reused = db_parent, db_parent_child (canonical = Parent App home-spec.md; 管理端仅 REUSE，不得重复定义)
 admin_page_aggregate = db_admin_org_home
 identity_alias = FORBIDDEN
@@ -26,9 +26,9 @@ identity_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = org.read|org.teacher.write|org.class.write|org.child.write|org.account.reset according to action
 all raw admin_id|school_id|teacher_id|class_id|child_id|parent_id ui = context.hidden
 client_editable = 0; selectors submit opaque values that backend revalidates
@@ -41,7 +41,7 @@ pii_rule = phone/contact fields require least-privilege permission and masked li
 prototype_content = HTML 中六名教师、六个班级、六名幼儿、电话、家长、人数、累计上传、测评完成、档案状态及表单默认 30 人均为 Mock
 static_ui_content = 三个组织分类、岗位/年级/性别选项、表头、操作说明和空状态文案
 business_seed = NONE
-base_identity_data = real db_school|db_admin|db_admin_school|db_teacher|db_class|db_teacher_class|db_child|db_parent|db_parent_child may be provisioned by deployment or authorized admin
+base_identity_data = real db_school|db_admin|db_teacher|db_class|db_teacher_class|db_child|db_parent|db_parent_child may be provisioned by deployment or authorized admin
 dynamic_list_without_data = []
 dynamic_count_without_data = 0
 unassigned_or_unstarted_status = not_started
@@ -177,9 +177,9 @@ name_query (姓名搜索文字), 0:1, max_len=50, ui=admin_org.name_query
 
 filter_binding (搜索控件绑定) = name_query 是查询参数不是列，落在本 persist=0 聚合上：同一个搜索框按当前 tab 分别搜 db_teacher.teacher_name、db_class.class_name、db_child.child_name，写在任一张表上都只对一个 tab 成立。tab 本身是三个按钮不是写入控件，不需要 ui= 标注
 
-rel_count (关系数量) = 13
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_parent, db_parent_child, db_upload, db_growth_record, db_assessment
-rel_map (关系字段) = db_admin_org_home{admin_id}<->db_admin{admin_id}; db_admin_org_home{school_id}<->db_school{school_id}; db_admin_org_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_org_home{teacher_id}<->db_teacher{teacher_id}; db_admin_org_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_org_home{class_id}<->db_class{class_id}; db_admin_org_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_org_home{child_id}<->db_child{child_id}; db_admin_org_home{parent_id}<->db_parent{parent_id}; db_admin_org_home{parent_child_id}<->db_parent_child{parent_child_id}; db_admin_org_home{upload_id}<->db_upload{upload_id}; db_admin_org_home{growth_record_id}<->db_growth_record{growth_record_id}; db_admin_org_home{assessment_id}<->db_assessment{assessment_id}
+rel_count (关系数量) = 12
+rel_db (关联表) = db_admin, db_school, db_teacher, db_teacher_profile, db_class, db_teacher_class, db_child, db_parent, db_parent_child, db_upload, db_growth_record, db_assessment
+rel_map (关系字段) = db_admin_org_home{admin_id}<->db_admin{admin_id}; db_admin_org_home{school_id}<->db_school{school_id}; db_admin_org_home{teacher_id}<->db_teacher{teacher_id}; db_admin_org_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_org_home{class_id}<->db_class{class_id}; db_admin_org_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_org_home{child_id}<->db_child{child_id}; db_admin_org_home{parent_id}<->db_parent{parent_id}; db_admin_org_home{parent_child_id}<->db_parent_child{parent_child_id}; db_admin_org_home{upload_id}<->db_upload{upload_id}; db_admin_org_home{growth_record_id}<->db_growth_record{growth_record_id}; db_admin_org_home{assessment_id}<->db_assessment{assessment_id}
 persist = 0
 object_type = aggregate
 

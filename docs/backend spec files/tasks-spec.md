@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; review-spec.md; Teacher App home-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_teacher, db_teacher_profile, db_task, db_task_assign, db_file
+shared_objects = db_admin, db_school, db_teacher, db_teacher_profile, db_task, db_task_assign, db_file
 new_business_object = NONE
 admin_page_aggregate = db_admin_task_home
 task_alias = FORBIDDEN; admin-issued teacher work remains canonical db_task
@@ -25,9 +25,9 @@ task_alias = FORBIDDEN; admin-issued teacher work remains canonical db_task
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = task.read|task.publish|task.urge according to action
 raw admin_id|school_id|teacher_id ui = context.hidden
 client_editable = 0
@@ -122,9 +122,9 @@ teacher_id (执行教师ID), 0:k, integer, ui=admin_task.detail.assignee
 teacher_profile_id (教师专业档案ID), 0:k, integer, ui=context.hidden
 assignee_selector (指派对象选择), 0:1, all_teachers|grade_group|department, ui=admin_task.assignee_selector
 
-rel_count (关系数量) = 7
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_task, db_task_assign, db_teacher, db_teacher_profile
-rel_map (关系字段) = db_admin_task_home{admin_id}<->db_admin{admin_id}; db_admin_task_home{school_id}<->db_school{school_id}; db_admin_task_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_task_home{task_id}<->db_task{task_id}; db_admin_task_home{assign_id}<->db_task_assign{assign_id}; db_admin_task_home{teacher_id}<->db_teacher{teacher_id}; db_admin_task_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}
+rel_count (关系数量) = 6
+rel_db (关联表) = db_admin, db_school, db_task, db_task_assign, db_teacher, db_teacher_profile
+rel_map (关系字段) = db_admin_task_home{admin_id}<->db_admin{admin_id}; db_admin_task_home{school_id}<->db_school{school_id}; db_admin_task_home{task_id}<->db_task{task_id}; db_admin_task_home{assign_id}<->db_task_assign{assign_id}; db_admin_task_home{teacher_id}<->db_teacher{teacher_id}; db_admin_task_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}
 persist = 0
 object_type = aggregate
 

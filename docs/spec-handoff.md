@@ -133,9 +133,15 @@ The following names are reserved for cross-app consistency. Define their fields 
 | `db_parent` | Parent/guardian identity | Parent App `home-spec.md` |
 | `db_parent_child` | Authorized parent-child relationship | Parent App `home-spec.md` |
 | `db_admin` | Admin identity | Admin App `dashboard-spec.md` |
-| `db_admin_school` | Authorized admin-school relationship and role scope | Admin App `dashboard-spec.md` |
+| ~~`db_admin_school`~~ | **DELETED** — see below | Admin App `dashboard-spec.md` |
 
-All four are now defined; treat them as REUSE, not as names still awaiting a first definition.
+`db_admin_school` is **deleted by `DECISIONS.md` B3**: under a single-kindergarten system the relation is
+effectively 1:1, so `school_id`, `role` and `permission_scope` were merged into `db_admin`. It is gone from
+the DDL. Authorize through `db_admin` instead, and express inactivity as `admin_status` rather than a soft
+`is_active` flag, per B1. **Do not reference it in new specs, and do not resurrect it under another name.**
+The entry is kept here rather than removed so the decision stays discoverable.
+
+The other three are defined; treat them as REUSE, not as names still awaiting a first definition.
 
 Before creating another identity object, check whether one of these names represents the same entity.
 
@@ -153,10 +159,14 @@ Section 3 lists what the Teacher App handed over. These were introduced afterwar
 | `db_review_action` | Review decision audit row — insert-only, same transaction as the decision | Admin `review-spec.md` |
 | `db_content_metric` | Non-persistent view/download metric aggregate | Admin `library-spec.md` |
 | `db_school_book_section` | School-level growth-book section, filled by admin and pushed read-only to teachers | Admin `growth-book-setting-spec.md` |
+| `db_school_book_template_assignment` | The six standing grade × term_season slots, each holding one released `pack_code` | Admin `growth-book-setting-spec.md` |
+| `db_school_book_release` | Immutable snapshot written on every successful settings publish; `db_growth_book` binds `book_release_id` at creation so an old book always reopens as it was | Admin `growth-book-setting-spec.md` |
 
 `db_review_action` carries a security rule, not just a shape: the review decision, the target-table status update and the `db_review_action` insert must happen **in one transaction**, and the row is never updated or deleted (backend `CLAUDE.md` red line 2).
 
 `db_school_book_section` is **not** the same object as the class-level `db_growth_book_section`; the two differ in owner, lifecycle, collection behaviour and layout source. See `school_section_scope_rule` in `growth-book-setting-spec.md` before attempting to merge them.
+
+`db_school_book_release` and `db_school_book_template_assignment` were introduced by F19 and F20 (2026-08-13/14) and existed in the DDL and in five spec rules before being registered here. Registered 2026-08-19. Both are in the live schema.
 
 
 ## 6. Decided but Not Yet Landed
@@ -236,9 +246,9 @@ class_id = db_child.class_id
 
 ```text
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE active=1
+allowed_school_id = db_admin.school_id WHERE admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 ```
 
 For all apps:
@@ -427,7 +437,7 @@ Keep one main-agent process responsible for the canonical object registry and al
 
 Critical production rule: all sample records visible in the HTML are Mock data. This includes documents, cases, resources, tasks, submissions, training records, child names, class names, dates, images, progress percentages, badges, counts, and completion statuses. Production business tables start empty. Keep only static navigation, labels, instructions, categories, and empty-state copy. Real identity/roster/permission data may be provisioned by an authorized administrator.
 
-Use database-generated IDs; never hard-code sample IDs. Raw identity IDs must be derived from the authenticated context, hidden from direct editing, and validated by the backend. For Parent App pages, authorize `parent_id` through `db_parent_child` before using `child_id`. For Admin App pages, authorize `admin_id` and `school_id` through `db_admin_school` and permission scope.
+Use database-generated IDs; never hard-code sample IDs. Raw identity IDs must be derived from the authenticated context, hidden from direct editing, and validated by the backend. For Parent App pages, authorize `parent_id` through `db_parent_child` before using `child_id`. For Admin App pages, authorize `admin_id` and `school_id` through `db_admin` (`school_id`, `role`, `permission_scope`) and permission scope.
 
 First perform these steps:
 1. Inventory the supplied core HTML pages and identify static navigation, dynamic business content, forms, filters, jumps, and Mock elements.

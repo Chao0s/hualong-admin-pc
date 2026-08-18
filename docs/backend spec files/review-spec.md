@@ -17,7 +17,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry (canonical 注册表) = docs/spec-handoff.md
 shared_object_source (共享对象来源) = dashboard-spec.md; Teacher App home-spec.md|training-center-spec.md
-shared_objects (共享对象) = db_admin, db_admin_school, db_school, db_class, db_child, db_parent, db_teacher, db_file, db_upload, db_resource, db_case, db_training, db_training_participation, db_child_profile_correction
+shared_objects (共享对象) = db_admin, db_school, db_class, db_child, db_parent, db_teacher, db_file, db_upload, db_resource, db_case, db_training, db_training_participation, db_child_profile_correction
 new_canonical_objects_defined_here (本页真正新增对象) = db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_review_action
 admin_page_aggregate (管理端页面聚合) = db_admin_review_home
 rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
@@ -26,9 +26,9 @@ rename_or_duplicate_shared_object (重命名或复制共享对象) = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = review.resource|review.case|review.teacher_profile|review.training_feedback according to tab and target_type
 child_profile_permission = 任何有效同园管理端登录身份均可审核，不新增细分 permission；school_id 仍由 session 派生并内联校验
 raw_identity_id_ui = context.hidden
@@ -113,9 +113,9 @@ child_result_filter (幼儿资料结果筛选), 0:1, all|approved|rejected, ui=a
 
 filter_binding (筛选控件绑定) = 以上五栏是查询参数不是列，因此落在本 persist=0 聚合上而不是各目标表：一个搜索框要同时搜五种 target_type 的名称与教师，写在任一目标表上都只对一种成立。班级筛选的 class_id 在管理端属 free（scope-rules.json），但服务端仍须把 derived school_id 内联进同一条 predicate。三个幼儿资料筛选只在该 tab 显示，其余 tab 隐藏而非删除
 
-rel_count (关系数量) = 12
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_upload, db_resource, db_case, db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_child_profile_correction, db_review_action
-rel_map (关系字段) = db_admin_review_home{admin_id}<->db_admin{admin_id}; db_admin_review_home{school_id}<->db_school{school_id}; db_admin_review_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_review_home{upload_id}<->db_upload{upload_id}; db_admin_review_home{resource_id}<->db_resource{resource_id}; db_admin_review_home{case_id}<->db_case{case_id}; db_admin_review_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_review_home{credential_id}<->db_teacher_credential{credential_id}; db_admin_review_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_review_home{feedback_id}<->db_training_feedback{feedback_id}; db_admin_review_home{child_profile_correction_id}<->db_child_profile_correction{child_profile_correction_id}; db_admin_review_home{review_action_id}<->db_review_action{review_action_id}
+rel_count (关系数量) = 11
+rel_db (关联表) = db_admin, db_school, db_upload, db_resource, db_case, db_teacher_profile, db_teacher_credential, db_teacher_profile_change, db_training_feedback, db_child_profile_correction, db_review_action
+rel_map (关系字段) = db_admin_review_home{admin_id}<->db_admin{admin_id}; db_admin_review_home{school_id}<->db_school{school_id}; db_admin_review_home{upload_id}<->db_upload{upload_id}; db_admin_review_home{resource_id}<->db_resource{resource_id}; db_admin_review_home{case_id}<->db_case{case_id}; db_admin_review_home{teacher_profile_id}<->db_teacher_profile{teacher_profile_id}; db_admin_review_home{credential_id}<->db_teacher_credential{credential_id}; db_admin_review_home{teacher_profile_change_id}<->db_teacher_profile_change{teacher_profile_change_id}; db_admin_review_home{feedback_id}<->db_training_feedback{feedback_id}; db_admin_review_home{child_profile_correction_id}<->db_child_profile_correction{child_profile_correction_id}; db_admin_review_home{review_action_id}<->db_review_action{review_action_id}
 persist (是否持久化) = 0
 object_type (对象类型) = aggregate
 

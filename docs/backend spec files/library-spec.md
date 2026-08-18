@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; Teacher App home-spec.md|training-center-spec.md|school-affairs-spec.md|comprehensive-coordination-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_school_term, db_teacher, db_file, db_resource, db_case, db_home_case, db_training_recommendation, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training
+shared_objects = db_admin, db_school, db_school_term, db_teacher, db_file, db_resource, db_case, db_home_case, db_training_recommendation, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training
 new_canonical_object_defined_here = db_content_metric (non-persistent aggregate view)
 admin_page_aggregate = db_admin_library_home
 resource_or_case_alias = FORBIDDEN
@@ -25,9 +25,9 @@ resource_or_case_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = library.read; library.recommend; library.publish_state according to action
 raw_identity_id_ui = context.hidden
 client_editable = 0
@@ -116,9 +116,9 @@ name_query (名称搜索文字), 0:1, max_len=50, ui=admin_library.name_query
 
 filter_binding (筛选控件绑定) = 以上六栏是查询参数不是列，落在本 persist=0 聚合上：表格是 db_resource 与 db_case 的联集视图，同一个筛选值要同时作用于两张表，写在任一张上都只对一半成立。type_filter 决定联集取哪一侧，category_filter 对应两表共有的 resource_tag，grade_filter 的 general 表示 grade 为空（资源不限年级），status_filter 映射 resource_status/case_status 的 s2 待审核／s3 已发布／s5 已下架。年级覆盖率不受这六栏影响，见 [GRADE_COVERAGE_RULE] 的 filter_independence
 
-rel_count (关系数量) = 10
-rel_db (关联表) = db_admin, db_school, db_school_term, db_admin_school, db_resource, db_case, db_home_case, db_training_recommendation, db_content_metric, db_file
-rel_map (关系字段) = db_admin_library_home{admin_id}<->db_admin{admin_id}; db_admin_library_home{school_id}<->db_school{school_id}; db_admin_library_home{term_id}<->db_school_term{term_id}; db_admin_library_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_library_home{resource_id}<->db_resource{resource_id}; db_admin_library_home{case_id}<->db_case{case_id}; db_admin_library_home{home_case_id}<->db_home_case{home_case_id}; db_admin_library_home{training_recommendation_id}<->db_training_recommendation{training_recommendation_id}; db_admin_library_home{content_metric_id}<->db_content_metric{content_metric_id}; db_admin_library_home{file_id}<->db_file{file_id}
+rel_count (关系数量) = 9
+rel_db (关联表) = db_admin, db_school, db_school_term, db_resource, db_case, db_home_case, db_training_recommendation, db_content_metric, db_file
+rel_map (关系字段) = db_admin_library_home{admin_id}<->db_admin{admin_id}; db_admin_library_home{school_id}<->db_school{school_id}; db_admin_library_home{term_id}<->db_school_term{term_id}; db_admin_library_home{resource_id}<->db_resource{resource_id}; db_admin_library_home{case_id}<->db_case{case_id}; db_admin_library_home{home_case_id}<->db_home_case{home_case_id}; db_admin_library_home{training_recommendation_id}<->db_training_recommendation{training_recommendation_id}; db_admin_library_home{content_metric_id}<->db_content_metric{content_metric_id}; db_admin_library_home{file_id}<->db_file{file_id}
 persist = 0
 object_type = aggregate
 

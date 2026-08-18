@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; library-spec.md; Teacher App school-affairs-spec.md|comprehensive-coordination-spec.md|home-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_teacher, db_file, db_file_ref, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training, db_training_participation, db_notification, db_content_access_event, db_content_metric
+shared_objects = db_admin, db_school, db_teacher, db_file, db_file_ref, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training, db_training_participation, db_notification, db_content_access_event, db_content_metric
 new_business_object = NONE
 admin_page_aggregate = db_admin_content_home
 generic_content_table = FORBIDDEN; each category writes its existing canonical object
@@ -25,9 +25,9 @@ generic_content_table = FORBIDDEN; each category writes its existing canonical o
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = content.party.write|content.coord.write|content.training.write according to category
 raw admin_id|school_id|publisher_id ui = context.hidden
 client_editable = 0
@@ -158,9 +158,9 @@ publish_body (发布正文输入), 0:1, max_len=2000, ui=admin_content.publish.b
 publish_form_binding (发布弹层控件绑定) = modal-content 是一个按栏目分派的表单：同一个标题框按 publish_category 写 db_party_study.study_title、db_party_activity.activity_title、db_party_brand.brand_title、db_coord_document.document_title 或 db_training.training_title，正文框同理写各自的 *_content。因此三栏登记在本 persist=0 聚合上，而不是任选一张目标表 —— 挂在任一张上都只对五分之一的栏目成立，而 data-ui 是写在 markup 上的单一值，无法随 tab 改写。[FORM_FIELD_INDEX] 的 CATEGORY_OBJECT_MAP 仍是「哪个栏目落哪张表」的权威，本三栏只负责「哪个控件」
 publish_form_unbuilt (原型尚未建的控件) = 学习类型、发布部门、外部视频链接、活动时间／地点、品牌标签、发布日期、研修开始／结束／地点／主讲人、会议入口与三类 db_file_ref 附件在 index.html 里都还没有控件（附件只有一个 toast 按钮）。它们在 [FORM_FIELD_INDEX] 已有列级归属，等原型建出控件时再逐个补 ui= 标注，不预先造假路径
 
-rel_count (关系数量) = 12
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_teacher, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training, db_training_participation, db_file, db_content_metric
-rel_map (关系字段) = db_admin_content_home{admin_id}<->db_admin{admin_id}; db_admin_content_home{school_id}<->db_school{school_id}; db_admin_content_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_content_home{participant_teacher_id}<->db_teacher{teacher_id}; db_admin_content_home{study_id}<->db_party_study{study_id}; db_admin_content_home{activity_id}<->db_party_activity{activity_id}; db_admin_content_home{brand_id}<->db_party_brand{brand_id}; db_admin_content_home{document_id}<->db_coord_document{document_id}; db_admin_content_home{training_id}<->db_training{training_id}; db_admin_content_home{training_participation_id}<->db_training_participation{training_participation_id}; db_admin_content_home{file_id}<->db_file{file_id}; db_admin_content_home{content_metric_id}<->db_content_metric{content_metric_id}
+rel_count (关系数量) = 11
+rel_db (关联表) = db_admin, db_school, db_teacher, db_party_study, db_party_activity, db_party_brand, db_coord_document, db_training, db_training_participation, db_file, db_content_metric
+rel_map (关系字段) = db_admin_content_home{admin_id}<->db_admin{admin_id}; db_admin_content_home{school_id}<->db_school{school_id}; db_admin_content_home{participant_teacher_id}<->db_teacher{teacher_id}; db_admin_content_home{study_id}<->db_party_study{study_id}; db_admin_content_home{activity_id}<->db_party_activity{activity_id}; db_admin_content_home{brand_id}<->db_party_brand{brand_id}; db_admin_content_home{document_id}<->db_coord_document{document_id}; db_admin_content_home{training_id}<->db_training{training_id}; db_admin_content_home{training_participation_id}<->db_training_participation{training_participation_id}; db_admin_content_home{file_id}<->db_file{file_id}; db_admin_content_home{content_metric_id}<->db_content_metric{content_metric_id}
 persist = 0
 object_type = aggregate
 

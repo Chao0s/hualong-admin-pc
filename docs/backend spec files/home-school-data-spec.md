@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; Teacher App home-spec.md|home-school-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_class, db_teacher, db_teacher_class, db_child, db_home_school_progress, db_moment, db_moment_upload, db_parent_task, db_parent_task_submission, db_growth_record, db_growth_book
+shared_objects = db_admin, db_school, db_class, db_teacher, db_teacher_class, db_child, db_home_school_progress, db_moment, db_moment_upload, db_parent_task, db_parent_task_submission, db_growth_record, db_growth_book
 new_business_object = NONE
 admin_page_aggregate = db_admin_home_school_home
 shared_progress_alias = FORBIDDEN
@@ -25,9 +25,9 @@ shared_progress_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = home_school_data.read
 class_id for detail MUST belong to current_school_id
 raw identity IDs ui = context.hidden
@@ -96,9 +96,9 @@ parent_task_submission_id (亲子任务提交ID), 0:k, integer, ui=admin_home_sc
 growth_record_id (成长档案ID), 0:k, integer, ui=admin_home_school.growth_record
 growth_book_id (成长册ID), 0:k, integer, ui=admin_home_school.growth_book
 
-rel_count (关系数量) = 14
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_class, db_teacher, db_teacher_class, db_child, db_home_school_progress, db_moment, db_moment_upload, db_parent_task, db_parent_task_submission, db_growth_record, db_growth_book
-rel_map (关系字段) = db_admin_home_school_home{admin_id}<->db_admin{admin_id}; db_admin_home_school_home{school_id}<->db_school{school_id}; db_admin_home_school_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_home_school_home{class_id}<->db_class{class_id}; db_admin_home_school_home{teacher_id}<->db_teacher{teacher_id}; db_admin_home_school_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_home_school_home{child_id}<->db_child{child_id}; db_admin_home_school_home{home_school_progress_id}<->db_home_school_progress{home_school_progress_id}; db_admin_home_school_home{moment_id}<->db_moment{moment_id}; db_admin_home_school_home{moment_upload_id}<->db_moment_upload{moment_upload_id}; db_admin_home_school_home{parent_task_id}<->db_parent_task{parent_task_id}; db_admin_home_school_home{parent_task_submission_id}<->db_parent_task_submission{parent_task_submission_id}; db_admin_home_school_home{growth_record_id}<->db_growth_record{growth_record_id}; db_admin_home_school_home{growth_book_id}<->db_growth_book{growth_book_id}
+rel_count (关系数量) = 13
+rel_db (关联表) = db_admin, db_school, db_class, db_teacher, db_teacher_class, db_child, db_home_school_progress, db_moment, db_moment_upload, db_parent_task, db_parent_task_submission, db_growth_record, db_growth_book
+rel_map (关系字段) = db_admin_home_school_home{admin_id}<->db_admin{admin_id}; db_admin_home_school_home{school_id}<->db_school{school_id}; db_admin_home_school_home{class_id}<->db_class{class_id}; db_admin_home_school_home{teacher_id}<->db_teacher{teacher_id}; db_admin_home_school_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_home_school_home{child_id}<->db_child{child_id}; db_admin_home_school_home{home_school_progress_id}<->db_home_school_progress{home_school_progress_id}; db_admin_home_school_home{moment_id}<->db_moment{moment_id}; db_admin_home_school_home{moment_upload_id}<->db_moment_upload{moment_upload_id}; db_admin_home_school_home{parent_task_id}<->db_parent_task{parent_task_id}; db_admin_home_school_home{parent_task_submission_id}<->db_parent_task_submission{parent_task_submission_id}; db_admin_home_school_home{growth_record_id}<->db_growth_record{growth_record_id}; db_admin_home_school_home{growth_book_id}<->db_growth_book{growth_book_id}
 persist = 0
 object_type = aggregate
 

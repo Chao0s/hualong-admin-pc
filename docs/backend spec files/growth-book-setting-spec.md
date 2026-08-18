@@ -22,8 +22,8 @@ f20_current_override (2026-08-14) = 园所成长册设置的锁定周期由「�
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; Teacher App home-spec.md|05 home-school-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_school_term, db_file, db_class, db_growth_book_compilation, db_growth_book
-new_business_object = db_school_book_section, db_school_book_template_assignment
+shared_objects = db_admin, db_school, db_school_term, db_file, db_class, db_growth_book_compilation, db_growth_book
+new_business_object = db_school_book_section, db_school_book_template_assignment, db_school_book_release
 admin_page_aggregate = db_admin_growth_book_setting_home
 design_asset_table = FORBIDDEN; 边框/底纹/配色不落业务表，见 design_ownership_rule
 grade_season_template = REQUIRED; 六个 grade × term_season 常设槽位，见 F19
@@ -32,9 +32,9 @@ grade_season_template = REQUIRED; 六个 grade × term_season 常设槽位，见
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = growth_book.setting.read|growth_book.setting.write
 raw admin_id|school_id|file_id ui = context.hidden
 client_editable = 0
@@ -108,7 +108,7 @@ environment_isolation = demo|test 数据不得复制到 production
 | 栏目照片 | db_school_book_section.file_id | 草稿 0:k；发布须传满 layout_code 声明的槽位数。槽位数不可写 |
 
 commit_rule (确认的语意) = book_setting_status=d1 时，园所介绍的「确认」可写入服务器草稿，右侧预览随输入即时更新；d2 后页面全部只读，不再形成本机待发布候选
-publish_commits_drafts = 唯一一次发布使用当前完整候选包做全量校验，并以单一事务从 d1 转 d2；发布成功后永久锁定
+publish_commits_drafts = 一次发布使用当前完整候选包做全量校验，并以单一事务从 d1 转 d2；发布成功后按学期锁定（F20：本学期无任一 e2 编册时可明确撤回回 d1，无自动解锁）
 
 placeholder_fill_rule = 后端把以上取值嵌入所选 template 的同名占位符；管理端不产生版面，只产生内容
 cover_title_fallback = title_text 为空时取 db_school.school_name + template 自带的默认后缀，不由客户端拼接
@@ -145,9 +145,9 @@ cover_file_id (封面照片ID), 0:1, integer, ui=admin_growth_book_setting.cover
 school_book_section_id (园所栏目ID), 0:k, integer, ui=admin_growth_book_setting.sections
 school_term_id (当前园所学期ID), 1:1, integer, ui=context.hidden
 
-rel_count (关系数量) = 6
-rel_db (关联表) = db_admin, db_school, db_school_term, db_admin_school, db_file, db_school_book_section
-rel_map (关系字段) = db_admin_growth_book_setting_home{admin_id}<->db_admin{admin_id}; db_admin_growth_book_setting_home{school_id}<->db_school{school_id}; db_admin_growth_book_setting_home{school_term_id}<->db_school_term{school_term_id}; db_admin_growth_book_setting_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_growth_book_setting_home{logo_file_id}<->db_file{file_id}; db_admin_growth_book_setting_home{cover_file_id}<->db_file{file_id}; db_admin_growth_book_setting_home{school_book_section_id}<->db_school_book_section{school_book_section_id}
+rel_count (关系数量) = 5
+rel_db (关联表) = db_admin, db_school, db_school_term, db_file, db_school_book_section
+rel_map (关系字段) = db_admin_growth_book_setting_home{admin_id}<->db_admin{admin_id}; db_admin_growth_book_setting_home{school_id}<->db_school{school_id}; db_admin_growth_book_setting_home{school_term_id}<->db_school_term{school_term_id}; db_admin_growth_book_setting_home{logo_file_id}<->db_file{file_id}; db_admin_growth_book_setting_home{cover_file_id}<->db_file{file_id}; db_admin_growth_book_setting_home{school_book_section_id}<->db_school_book_section{school_book_section_id}
 persist = 0
 object_type = aggregate
 
@@ -379,7 +379,10 @@ IF admin lacks growth_book.setting.write, return 403
 IF 请求首次发布园所内容 AND school_intro 为空, return 422
 IF 保存 assignment AND pack_code 为空, return 422
 IF 请求发布 AND 任一 db_school_book_section 的声明照片槽位未传满或声明的 body_text 为空, return 422 并回传该 section_id 与缺失项
-IF 撤回发布, return 409；d2 永久锁定
+IF 撤回设置 AND 当前学期存在任一 db_growth_book_compilation.compilation_status=e2, return 409（本学期已有班级锁定编册）
+IF 撤回设置 AND 无进行中的园所学期, return 409（无法判定学期，不得推断）
+IF 请求发布 AND 无进行中的园所学期, return 409（无法判定学期，不得推断）
+IF 撤回设置成功, d2→d1 且 book_setting_revision+1；既有 db_school_book_release 与已绑定的 db_growth_book 不受影响
 IF 请求保存服务端草稿 AND book_setting_status!=d1, return 409
 IF 请求发布的 book_setting_revision != db_school.book_setting_revision, return 409 AND keep local candidate; no partial write
 IF 请求发布幂等键已成功处理, return original result; MUST NOT write or increment revision again

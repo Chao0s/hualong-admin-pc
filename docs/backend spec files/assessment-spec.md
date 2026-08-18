@@ -16,7 +16,7 @@ list_rule (列表规则) = 0:k | 1:k
 
 canonical_registry = docs/spec-handoff.md
 shared_object_source = dashboard-spec.md; Teacher App home-spec.md|home-school-spec.md
-shared_objects = db_admin, db_admin_school, db_school, db_class, db_teacher, db_teacher_class, db_child, db_assessment, db_assessment_item
+shared_objects = db_admin, db_school, db_class, db_teacher, db_teacher_class, db_child, db_assessment, db_assessment_item
 new_business_object = NONE
 admin_page_aggregate = db_admin_assessment_home
 assessment_alias = FORBIDDEN
@@ -25,9 +25,9 @@ assessment_alias = FORBIDDEN
 [CONTEXT_RULE]
 
 admin_id = auth_session.admin_id
-allowed_school_id = db_admin_school.school_id WHERE admin_id=current_admin_id AND is_active=1
+allowed_school_id = db_admin.school_id WHERE admin_id=current_admin_id AND admin_status=s1
 current_school_id MUST IN allowed_school_id
-permission = db_admin_school.role|permission_scope
+permission = db_admin.role|permission_scope
 required_permission = assessment.read; assessment.export for export actions
 class_id selector MUST reference db_class.school_id=current_school_id
 raw identity IDs ui = context.hidden
@@ -96,9 +96,9 @@ assessment_id (测评ID), 0:k, integer, ui=admin_assessment.done|admin_assessmen
 assessment_period (筛选评估周期), 0:1, YYYY-MM|school_term, ui=admin_assessment.period_select
 item_id (测评项ID), 0:k, integer, ui=admin_assessment.domain_average|admin_assessment.radar
 
-rel_count (关系数量) = 9
-rel_db (关联表) = db_admin, db_school, db_admin_school, db_class, db_teacher, db_teacher_class, db_child, db_assessment, db_assessment_item
-rel_map (关系字段) = db_admin_assessment_home{admin_id}<->db_admin{admin_id}; db_admin_assessment_home{school_id}<->db_school{school_id}; db_admin_assessment_home{admin_school_id}<->db_admin_school{admin_school_id}; db_admin_assessment_home{class_id}<->db_class{class_id}; db_admin_assessment_home{teacher_id}<->db_teacher{teacher_id}; db_admin_assessment_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_assessment_home{child_id}<->db_child{child_id}; db_admin_assessment_home{assessment_id}<->db_assessment{assessment_id}; db_admin_assessment_home{item_id}<->db_assessment_item{item_id}
+rel_count (关系数量) = 8
+rel_db (关联表) = db_admin, db_school, db_class, db_teacher, db_teacher_class, db_child, db_assessment, db_assessment_item
+rel_map (关系字段) = db_admin_assessment_home{admin_id}<->db_admin{admin_id}; db_admin_assessment_home{school_id}<->db_school{school_id}; db_admin_assessment_home{class_id}<->db_class{class_id}; db_admin_assessment_home{teacher_id}<->db_teacher{teacher_id}; db_admin_assessment_home{teacher_class_id}<->db_teacher_class{teacher_class_id}; db_admin_assessment_home{child_id}<->db_child{child_id}; db_admin_assessment_home{assessment_id}<->db_assessment{assessment_id}; db_admin_assessment_home{item_id}<->db_assessment_item{item_id}
 persist = 0
 object_type = aggregate
 
